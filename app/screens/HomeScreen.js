@@ -252,7 +252,7 @@ const HomeScreen = ({ navigation }) => {
         const hasExternalUrl = Boolean(String(item?.external_url || '').trim());
         const onPress = hasExternalUrl || hasEventNewsDetailRoute ? () => openEventNewsItem(item) : undefined;
         return (
-          <View style={styles.cmsItemWrap}>
+          <View style={[styles.cmsItemWrap, isWeb && styles.cmsItemWrapWeb]}>
             <EventNewsCard
               item={item}
               isRTL={isRTL}
@@ -287,7 +287,7 @@ const HomeScreen = ({ navigation }) => {
         />
       );
     },
-    [hasEventNewsDetailRoute, isRTL, navigation, openEventNewsItem, openExternalLink],
+    [hasEventNewsDetailRoute, isRTL, isWeb, navigation, openEventNewsItem, openExternalLink],
   );
 
   const listHeader = useMemo(
@@ -485,6 +485,9 @@ const styles = StyleSheet.create({
   },
   cmsItemWrap: {
     width: '100%',
+  },
+  cmsItemWrapWeb: {
+    alignItems: 'center',
   },
   greeting: {
     fontSize: 28,

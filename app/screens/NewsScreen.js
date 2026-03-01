@@ -147,7 +147,7 @@ const NewsScreen = ({ navigation }) => {
 
   const renderItem = useCallback(
     ({ item }) => (
-      <View style={styles.cmsItemWrap}>
+      <View style={[styles.cmsItemWrap, isWeb && styles.cmsItemWrapWeb]}>
         <EventNewsCard
           item={item}
           isRTL={isRTL}
@@ -156,7 +156,7 @@ const NewsScreen = ({ navigation }) => {
         />
       </View>
     ),
-    [isRTL, newsStrings.eventsSection, newsStrings.newsSection],
+    [isRTL, isWeb, newsStrings.eventsSection, newsStrings.newsSection],
   );
 
   const listHeader = useMemo(
@@ -285,6 +285,9 @@ const styles = StyleSheet.create({
   },
   cmsItemWrap: {
     width: '100%',
+  },
+  cmsItemWrapWeb: {
+    alignItems: 'center',
   },
   errorRow: {
     backgroundColor: 'rgba(214, 69, 69, 0.08)',
