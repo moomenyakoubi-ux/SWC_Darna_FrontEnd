@@ -485,7 +485,6 @@ const styles = StyleSheet.create({
   },
   cmsItemWrap: {
     width: '100%',
-    alignSelf: 'flex-start',
   },
   greeting: {
     fontSize: 28,

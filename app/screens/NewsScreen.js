@@ -285,7 +285,6 @@ const styles = StyleSheet.create({
   },
   cmsItemWrap: {
     width: '100%',
-    alignSelf: 'flex-start',
   },
   errorRow: {
     backgroundColor: 'rgba(214, 69, 69, 0.08)',
