@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '../context/ThemeContext';
 import ResponsiveMedia from './ResponsiveMedia';
 import { getBestMediaInfo } from '../utils/media';
@@ -14,6 +14,7 @@ const formatStartsAt = (value) => {
 };
 
 const EventNewsCard = ({ item, isRTL, onPress, accessibilityRole, eventBadgeLabel, newsBadgeLabel }) => {
+  const isWeb = Platform.OS === 'web';
   const { theme } = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const isEvent = item?.type === 'event';
@@ -30,7 +31,7 @@ const EventNewsCard = ({ item, isRTL, onPress, accessibilityRole, eventBadgeLabe
       onPress={onPress}
       disabled={!onPress}
       accessibilityRole={onPress ? accessibilityRole || 'button' : undefined}
-      style={({ pressed }) => [styles.card, pressed && onPress && styles.pressed]}
+      style={({ pressed }) => [styles.card, isWeb && styles.cardWeb, pressed && onPress && styles.pressed]}
     >
       {sourceUri ? (
         <View style={styles.mediaSection}>
@@ -55,7 +56,6 @@ const EventNewsCard = ({ item, isRTL, onPress, accessibilityRole, eventBadgeLabe
 const createStyles = (theme) =>
   StyleSheet.create({
     card: {
-      width: '100%',
       backgroundColor: theme.colors.card,
       borderRadius: theme.radius.lg,
       marginBottom: theme.spacing.md,
@@ -63,6 +63,10 @@ const createStyles = (theme) =>
       borderColor: theme.colors.border,
       overflow: 'hidden',
       ...theme.shadow.card,
+    },
+    cardWeb: {
+      alignSelf: 'flex-start',
+      maxWidth: '100%',
     },
     pressed: {
       opacity: 0.92,

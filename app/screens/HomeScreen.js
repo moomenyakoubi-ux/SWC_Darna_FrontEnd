@@ -252,12 +252,14 @@ const HomeScreen = ({ navigation }) => {
         const hasExternalUrl = Boolean(String(item?.external_url || '').trim());
         const onPress = hasExternalUrl || hasEventNewsDetailRoute ? () => openEventNewsItem(item) : undefined;
         return (
-          <EventNewsCard
-            item={item}
-            isRTL={isRTL}
-            onPress={onPress}
-            accessibilityRole={hasExternalUrl ? 'link' : 'button'}
-          />
+          <View style={styles.cmsItemWrap}>
+            <EventNewsCard
+              item={item}
+              isRTL={isRTL}
+              onPress={onPress}
+              accessibilityRole={hasExternalUrl ? 'link' : 'button'}
+            />
+          </View>
         );
       }
 
@@ -480,6 +482,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.xl + 40,
+  },
+  cmsItemWrap: {
+    width: '100%',
+    alignSelf: 'flex-start',
   },
   greeting: {
     fontSize: 28,

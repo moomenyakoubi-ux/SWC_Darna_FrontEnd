@@ -147,12 +147,14 @@ const NewsScreen = ({ navigation }) => {
 
   const renderItem = useCallback(
     ({ item }) => (
-      <EventNewsCard
-        item={item}
-        isRTL={isRTL}
-        eventBadgeLabel={newsStrings.eventsSection}
-        newsBadgeLabel={newsStrings.newsSection}
-      />
+      <View style={styles.cmsItemWrap}>
+        <EventNewsCard
+          item={item}
+          isRTL={isRTL}
+          eventBadgeLabel={newsStrings.eventsSection}
+          newsBadgeLabel={newsStrings.newsSection}
+        />
+      </View>
     ),
     [isRTL, newsStrings.eventsSection, newsStrings.newsSection],
   );
@@ -280,6 +282,10 @@ const styles = StyleSheet.create({
   webList: {
     paddingRight: theme.spacing.lg + WEB_SIDE_MENU_WIDTH,
     paddingLeft: theme.spacing.lg + WEB_TAB_BAR_WIDTH,
+  },
+  cmsItemWrap: {
+    width: '100%',
+    alignSelf: 'flex-start',
   },
   errorRow: {
     backgroundColor: 'rgba(214, 69, 69, 0.08)',
