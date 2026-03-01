@@ -5,8 +5,10 @@ import Card from '../components/Card';
 import fakeEvents from '../data/fakeEvents';
 import theme from '../styles/theme';
 import { useLanguage } from '../context/LanguageContext';
+import { getBestMediaInfo } from '../utils/media';
 
 const backgroundImage = require('../images/image1.png');
+const DEFAULT_CONTENT_ASPECT_RATIO = 4 / 5;
 
 const EventsScreen = () => {
   const { strings, isRTL } = useLanguage();
@@ -26,20 +28,24 @@ const EventsScreen = () => {
             <FlatList
               data={fakeEvents}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <Card
-                  title={item.title}
-                  description={item.description}
-                  image={item.image}
-                  publicUrl={item.publicUrl}
-                  width={item.width}
-                  height={item.height}
-                  aspect_ratio={item.aspect_ratio}
-                  mediaAspectRatio={item.mediaAspectRatio}
-                  subtitle={`${item.city} • ${item.date}`}
-                  isRTL={isRTL}
-                />
-              )}
+              renderItem={({ item }) => {
+                const { uri, width, height, aspectRatio } = getBestMediaInfo(item, DEFAULT_CONTENT_ASPECT_RATIO);
+
+                return (
+                  <Card
+                    title={item.title}
+                    description={item.description}
+                    image={item.image}
+                    publicUrl={uri || item.publicUrl}
+                    width={width ?? item.width}
+                    height={height ?? item.height}
+                    aspect_ratio={aspectRatio}
+                    mediaAspectRatio={item.mediaAspectRatio}
+                    subtitle={`${item.city} • ${item.date}`}
+                    isRTL={isRTL}
+                  />
+                );
+              }}
               contentContainerStyle={styles.list}
               showsVerticalScrollIndicator={false}
             />

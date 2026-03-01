@@ -2,51 +2,9 @@ import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '../context/ThemeContext';
 import ResponsiveMedia from './ResponsiveMedia';
-import { parseAspectRatio } from '../utils/parseAspectRatio';
+import { getBestMediaInfo } from '../utils/media';
 
 const DEFAULT_CONTENT_ASPECT_RATIO = 4 / 5;
-
-const getMediaUrl = (media) =>
-  media?.publicUrl ||
-  media?.public_url ||
-  media?.url ||
-  media?.image_url ||
-  media?.image ||
-  null;
-
-const getBestMedia = (item) => {
-  const firstMedia = Array.isArray(item?.mediaItems) ? item.mediaItems[0] : null;
-
-  const sourceUri =
-    getMediaUrl(firstMedia) ||
-    item?.publicUrl ||
-    item?.public_url ||
-    item?.image_url ||
-    item?.image ||
-    null;
-
-  const arFromMedia =
-    parseAspectRatio(firstMedia?.aspectRatio) ||
-    parseAspectRatio(firstMedia?.aspect_ratio);
-  const arFromRatioKey =
-    parseAspectRatio(firstMedia?.ratio_key) ||
-    parseAspectRatio(firstMedia?.ratioKey);
-  const arFromRoot =
-    parseAspectRatio(item?.aspectRatio) ||
-    parseAspectRatio(item?.aspect_ratio) ||
-    parseAspectRatio(item?.mediaAspectRatio);
-  const w = Number(firstMedia?.width ?? item?.width);
-  const h = Number(firstMedia?.height ?? item?.height);
-  const arFromWH =
-    Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0 ? w / h : null;
-
-  const aspectRatio = arFromMedia || arFromRatioKey || arFromRoot || arFromWH || DEFAULT_CONTENT_ASPECT_RATIO;
-
-  return {
-    sourceUri,
-    aspectRatio,
-  };
-};
 
 const formatStartsAt = (value) => {
   if (!value) return null;
@@ -55,14 +13,17 @@ const formatStartsAt = (value) => {
   return date.toLocaleString();
 };
 
-const EventNewsCard = ({ item, isRTL, onPress, accessibilityRole }) => {
+const EventNewsCard = ({ item, isRTL, onPress, accessibilityRole, eventBadgeLabel, newsBadgeLabel }) => {
   const { theme } = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const isEvent = item?.type === 'event';
-  const badgeLabel = isEvent ? 'Evento' : 'Notizia';
+  const badgeLabel = isEvent ? eventBadgeLabel || 'Evento' : newsBadgeLabel || 'Notizia';
   const preview = item?.excerpt || item?.content || '';
   const eventMeta = isEvent ? [item?.location, formatStartsAt(item?.starts_at)].filter(Boolean).join(' • ') : '';
-  const { sourceUri, aspectRatio } = useMemo(() => getBestMedia(item), [item]);
+  const { uri: sourceUri, aspectRatio } = useMemo(
+    () => getBestMediaInfo(item, DEFAULT_CONTENT_ASPECT_RATIO),
+    [item],
+  );
 
   return (
     <Pressable

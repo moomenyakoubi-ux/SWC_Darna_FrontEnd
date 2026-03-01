@@ -116,10 +116,7 @@ const HomeScreen = ({ navigation }) => {
 
   const showSoftError = useCallback((message) => {
     const text = message || 'Non siamo riusciti ad aggiornare il feed. Riprova.';
-    if (Platform.OS === 'web') {
-      console.warn('[home-feed] request failed:', text);
-      return;
-    }
+    if (Platform.OS === 'web') return;
     Alert.alert(homeStrings.communityPosts, text);
   }, [homeStrings.communityPosts]);
 

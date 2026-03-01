@@ -15,53 +15,12 @@ import theme from '../styles/theme';
 import { useLanguage } from '../context/LanguageContext';
 import WebSidebar, { WEB_SIDE_MENU_WIDTH } from '../components/WebSidebar';
 import { WEB_TAB_BAR_WIDTH } from '../components/WebTabBar';
-import ResponsiveMedia from '../components/ResponsiveMedia';
+import EventNewsCard from '../components/EventNewsCard';
 import useSession from '../auth/useSession';
 import { fetchEventsNews } from '../services/contentApi';
-import { parseAspectRatio } from '../utils/parseAspectRatio';
 
 const backgroundImage = require('../images/image1.png');
 const PAGE_SIZE = 10;
-const DEFAULT_CONTENT_ASPECT_RATIO = 4 / 5;
-
-const getMediaUrl = (media) =>
-  media?.publicUrl ||
-  media?.public_url ||
-  media?.url ||
-  media?.image_url ||
-  media?.image ||
-  null;
-
-const getBestMedia = (item) => {
-  const firstMedia = Array.isArray(item?.mediaItems) ? item.mediaItems[0] : null;
-
-  const sourceUri =
-    getMediaUrl(firstMedia) ||
-    item?.publicUrl ||
-    item?.public_url ||
-    item?.image_url ||
-    item?.image ||
-    null;
-
-  const arFromMedia =
-    parseAspectRatio(firstMedia?.aspectRatio) ||
-    parseAspectRatio(firstMedia?.aspect_ratio);
-  const arFromRatioKey =
-    parseAspectRatio(firstMedia?.ratio_key) ||
-    parseAspectRatio(firstMedia?.ratioKey);
-  const arFromRoot =
-    parseAspectRatio(item?.aspectRatio) ||
-    parseAspectRatio(item?.aspect_ratio) ||
-    parseAspectRatio(item?.mediaAspectRatio);
-  const w = Number(firstMedia?.width ?? item?.width);
-  const h = Number(firstMedia?.height ?? item?.height);
-  const arFromWH =
-    Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0 ? w / h : null;
-
-  const aspectRatio = arFromMedia || arFromRatioKey || arFromRoot || arFromWH || DEFAULT_CONTENT_ASPECT_RATIO;
-
-  return { sourceUri, aspectRatio };
-};
 
 const dedupeById = (items) => {
   const map = new Map();
@@ -72,13 +31,6 @@ const dedupeById = (items) => {
     }
   });
   return Array.from(map.values());
-};
-
-const formatStartAt = (value) => {
-  if (!value) return null;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString();
 };
 
 const NewsScreen = ({ navigation }) => {
@@ -106,10 +58,7 @@ const NewsScreen = ({ navigation }) => {
   const showSoftError = useCallback(
     (message) => {
       const text = message || errorLabel;
-      if (Platform.OS === 'web') {
-        console.warn('[news] request failed:', text);
-        return;
-      }
+      if (Platform.OS === 'web') return;
       Alert.alert(newsStrings.title, text);
     },
     [errorLabel, newsStrings.title],
@@ -197,33 +146,14 @@ const NewsScreen = ({ navigation }) => {
   const keyExtractor = useCallback((item) => item.id, []);
 
   const renderItem = useCallback(
-    ({ item }) => {
-      const isEvent = item.type === 'event';
-      const eventMeta = isEvent
-        ? [item.location, formatStartAt(item.starts_at)].filter(Boolean).join(' • ')
-        : null;
-      const badgeLabel = isEvent ? newsStrings.eventsSection : newsStrings.newsSection;
-      const { sourceUri, aspectRatio } = getBestMedia(item);
-
-      return (
-        <View style={styles.newsCard}>
-          {sourceUri ? (
-            <ResponsiveMedia
-              uri={sourceUri}
-              aspectRatio={aspectRatio}
-            />
-          ) : null}
-          <View style={styles.cardContent}>
-            <View style={styles.badgeRow}>
-              <Text style={[styles.typeBadge, isEvent ? styles.eventBadge : styles.newsBadge]}>{badgeLabel}</Text>
-            </View>
-            <Text style={[styles.cardTitle, isRTL && styles.rtlText]}>{item.title}</Text>
-            {item.excerpt ? <Text style={[styles.cardExcerpt, isRTL && styles.rtlText]}>{item.excerpt}</Text> : null}
-            {isEvent && eventMeta ? <Text style={[styles.eventMeta, isRTL && styles.rtlText]}>{eventMeta}</Text> : null}
-          </View>
-        </View>
-      );
-    },
+    ({ item }) => (
+      <EventNewsCard
+        item={item}
+        isRTL={isRTL}
+        eventBadgeLabel={newsStrings.eventsSection}
+        newsBadgeLabel={newsStrings.newsSection}
+      />
+    ),
     [isRTL, newsStrings.eventsSection, newsStrings.newsSection],
   );
 
@@ -350,57 +280,6 @@ const styles = StyleSheet.create({
   webList: {
     paddingRight: theme.spacing.lg + WEB_SIDE_MENU_WIDTH,
     paddingLeft: theme.spacing.lg + WEB_TAB_BAR_WIDTH,
-  },
-  newsCard: {
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.radius.lg,
-    marginBottom: theme.spacing.md,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    ...theme.shadow.card,
-  },
-  cardContent: {
-    padding: theme.spacing.md,
-    gap: theme.spacing.xs,
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    marginBottom: theme.spacing.xs,
-  },
-  typeBadge: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    overflow: 'hidden',
-  },
-  eventBadge: {
-    color: '#8A1C09',
-    backgroundColor: 'rgba(242, 163, 101, 0.25)',
-  },
-  newsBadge: {
-    color: theme.colors.secondary,
-    backgroundColor: 'rgba(231, 0, 19, 0.12)',
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: theme.colors.text,
-  },
-  cardExcerpt: {
-    fontSize: 14,
-    lineHeight: 21,
-    color: theme.colors.muted,
-  },
-  eventMeta: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: theme.colors.secondary,
-    marginTop: theme.spacing.xs,
   },
   errorRow: {
     backgroundColor: 'rgba(214, 69, 69, 0.08)',
