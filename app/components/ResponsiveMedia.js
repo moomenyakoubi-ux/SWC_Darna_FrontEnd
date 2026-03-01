@@ -11,6 +11,15 @@ const toFinitePositiveNumber = (value) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
+const isDebugMedia = () => {
+  if (typeof window === 'undefined') return false;
+  try {
+    return new URLSearchParams(window.location.search).get('debug_media') === '1';
+  } catch (_error) {
+    return false;
+  }
+};
+
 const ResponsiveMedia = ({ uri, aspectRatio, borderRadius = 0 }) => {
   const { height: windowHeight } = useWindowDimensions();
   const [containerWidth, setContainerWidth] = useState(0);
@@ -61,7 +70,7 @@ const ResponsiveMedia = ({ uri, aspectRatio, borderRadius = 0 }) => {
   }, [borderRadius, isWeb, safeAspectRatio, sizing.finalHeight]);
 
   useEffect(() => {
-    if (!__DEV__) return;
+    if (!(__DEV__ || isDebugMedia())) return;
     const computedHeight = sizing.computedHeight;
     const maxHeight = sizing.maxHeight;
     const finalHeight = sizing.finalHeight;

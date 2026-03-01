@@ -28,6 +28,15 @@ const toFiniteNumber = (value) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
+const isDebugMedia = () => {
+  if (typeof window === 'undefined') return false;
+  try {
+    return new URLSearchParams(window.location.search).get('debug_media') === '1';
+  } catch (_error) {
+    return false;
+  }
+};
+
 const getMediaUrl = (media) =>
   media?.publicUrl ||
   media?.public_url ||
@@ -56,7 +65,7 @@ const getBestMedia = (item) => {
     (width && height ? width / height : null) ||
     DEFAULT_CONTENT_ASPECT_RATIO;
 
-  if (__DEV__) {
+  if (__DEV__ || isDebugMedia()) {
     console.log('[NEWS_MEDIA_DEBUG]', {
       id: item?.type_id || item?.id,
       hasMediaItems: Array.isArray(item?.mediaItems) && item.mediaItems.length > 0,

@@ -10,6 +10,15 @@ const toFiniteNumber = (value) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
+const isDebugMedia = () => {
+  if (typeof window === 'undefined') return false;
+  try {
+    return new URLSearchParams(window.location.search).get('debug_media') === '1';
+  } catch (_error) {
+    return false;
+  }
+};
+
 const getMediaUrl = (media) =>
   media?.publicUrl ||
   media?.public_url ||
@@ -63,7 +72,7 @@ const EventNewsCard = ({ item, isRTL, onPress, accessibilityRole }) => {
   const { sourceUri, aspectRatio, hasMediaItems, firstMedia } = useMemo(() => getBestMedia(item), [item]);
 
   useEffect(() => {
-    if (!__DEV__) return;
+    if (!(__DEV__ || isDebugMedia())) return;
     const type = String(item?.type || '').trim().toLowerCase();
     const kind = String(item?.kind || '').trim().toLowerCase();
     const isEventNewsLike =
