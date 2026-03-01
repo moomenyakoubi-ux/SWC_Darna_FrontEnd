@@ -21,6 +21,12 @@ import { fetchEventsNews } from '../services/contentApi';
 
 const backgroundImage = require('../images/image1.png');
 const PAGE_SIZE = 10;
+const DEFAULT_CONTENT_ASPECT_RATIO = 4 / 5;
+
+const toFiniteNumber = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
 
 const dedupeById = (items) => {
   const map = new Map();
@@ -162,10 +168,24 @@ const NewsScreen = ({ navigation }) => {
         ? [item.location, formatStartAt(item.starts_at)].filter(Boolean).join(' • ')
         : null;
       const badgeLabel = isEvent ? newsStrings.eventsSection : newsStrings.newsSection;
+      const sourceUri = item?.publicUrl || item?.image_url || item?.image || null;
+      const width = toFiniteNumber(item?.width);
+      const height = toFiniteNumber(item?.height);
+      const ar =
+        toFiniteNumber(item?.aspect_ratio) ||
+        toFiniteNumber(item?.mediaAspectRatio) ||
+        (width && height ? width / height : null);
+      const imageAspectRatio = ar || DEFAULT_CONTENT_ASPECT_RATIO;
 
       return (
         <View style={styles.newsCard}>
-          {item.image_url ? <Image source={{ uri: item.image_url }} style={styles.cardImage} /> : null}
+          {sourceUri ? (
+            <Image
+              source={{ uri: sourceUri }}
+              style={[styles.cardImage, { aspectRatio: imageAspectRatio }]}
+              resizeMode="cover"
+            />
+          ) : null}
           <View style={styles.cardContent}>
             <View style={styles.badgeRow}>
               <Text style={[styles.typeBadge, isEvent ? styles.eventBadge : styles.newsBadge]}>{badgeLabel}</Text>
@@ -315,7 +335,6 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: '100%',
-    height: 170,
   },
   cardContent: {
     padding: theme.spacing.md,

@@ -2,14 +2,47 @@ import React, { useMemo } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '../context/ThemeContext';
 
-const Card = ({ title, subtitle, description, image, footer, isRTL = false }) => {
+const DEFAULT_CONTENT_ASPECT_RATIO = 4 / 5;
+
+const toFiniteNumber = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
+const Card = ({
+  title,
+  subtitle,
+  description,
+  image,
+  publicUrl,
+  width,
+  height,
+  aspect_ratio,
+  mediaAspectRatio,
+  footer,
+  isRTL = false,
+}) => {
   const { theme: appTheme } = useAppTheme();
   const styles = useMemo(() => createStyles(appTheme), [appTheme]);
   const directionalText = isRTL ? styles.rtlText : null;
+  const sourceUri = publicUrl || image || null;
+  const imageWidth = toFiniteNumber(width);
+  const imageHeight = toFiniteNumber(height);
+  const ar =
+    toFiniteNumber(aspect_ratio) ||
+    toFiniteNumber(mediaAspectRatio) ||
+    (imageWidth && imageHeight ? imageWidth / imageHeight : null);
+  const imageAspectRatio = ar || DEFAULT_CONTENT_ASPECT_RATIO;
 
   return (
     <View style={styles.card}>
-      {image ? <Image source={{ uri: image }} style={styles.image} /> : null}
+      {sourceUri ? (
+        <Image
+          source={{ uri: sourceUri }}
+          style={[styles.image, { aspectRatio: imageAspectRatio }]}
+          resizeMode="cover"
+        />
+      ) : null}
       <View style={styles.content}>
         {subtitle ? <Text style={[styles.subtitle, directionalText]}>{subtitle}</Text> : null}
         <Text style={[styles.title, directionalText]}>{title}</Text>
@@ -33,7 +66,6 @@ const createStyles = (appTheme) =>
     },
     image: {
       width: '100%',
-      height: 160,
     },
     content: {
       padding: appTheme.spacing.md,

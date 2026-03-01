@@ -123,6 +123,87 @@ const toNumber = (value) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+const pickFirstMedia = (item) => {
+  if (!item || typeof item !== 'object') return null;
+  const candidates = [
+    item.mediaItems,
+    item.media_items,
+    item.attachments,
+    item.media,
+    item.post_media,
+  ];
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) {
+      return candidate[0] || null;
+    }
+    if (candidate && typeof candidate === 'object') {
+      return candidate;
+    }
+  }
+  return null;
+};
+
+const extractMediaShape = (item) => {
+  const media = pickFirstMedia(item);
+
+  const mediaBucket = asNullableString(
+    media?.bucket ||
+      media?.bucket_id ||
+      media?.bucketId ||
+      media?.bucket_name ||
+      media?.storage_bucket ||
+      media?.storageBucket,
+  );
+  const mediaPath = asNullableString(
+    media?.path ||
+      media?.name ||
+      media?.file_path ||
+      media?.object_path ||
+      media?.storage_path ||
+      media?.storagePath,
+  );
+
+  const mediaUrl = asNullableString(media?.publicUrl || media?.public_url || media?.url || media?.image_url) ||
+    resolveStoragePublicUrl(mediaBucket, mediaPath);
+  const itemUrl = asNullableString(item?.publicUrl || item?.public_url || item?.url || item?.image_url || item?.image || item?.cover_url);
+
+  const mediaWidth = toNumber(media?.width);
+  const mediaHeight = toNumber(media?.height);
+  const itemWidth = toNumber(item?.width);
+  const itemHeight = toNumber(item?.height);
+  const width = mediaWidth ?? itemWidth;
+  const height = mediaHeight ?? itemHeight;
+
+  const mediaAspectRatio = toNumber(media?.aspectRatio ?? media?.aspect_ratio);
+  const itemAspectRatio = toNumber(item?.aspectRatio ?? item?.aspect_ratio ?? item?.mediaAspectRatio);
+  const aspectRatio = mediaAspectRatio ?? itemAspectRatio ?? (width && height ? width / height : null);
+  const ratioKey = asNullableString(media?.ratioKey ?? media?.ratio_key ?? item?.ratioKey ?? item?.ratio_key);
+
+  return {
+    publicUrl: mediaUrl || itemUrl,
+    width,
+    height,
+    aspectRatio,
+    ratioKey,
+  };
+};
+
+const buildMediaItemsFromShape = (mediaShape) => {
+  if (!mediaShape?.publicUrl) return [];
+  return [
+    {
+      mediaType: 'image',
+      publicUrl: mediaShape.publicUrl,
+      width: mediaShape.width,
+      height: mediaShape.height,
+      aspectRatio: mediaShape.aspectRatio,
+      aspect_ratio: mediaShape.aspectRatio,
+      ratioKey: mediaShape.ratioKey,
+      ratio_key: mediaShape.ratioKey,
+    },
+  ];
+};
+
 const toBoolean = (value) => {
   if (typeof value === 'boolean') return value;
   if (typeof value === 'string') {
@@ -241,13 +322,24 @@ const normalizeEventsNewsItem = (item, index, offset) => {
     `${type}-${offset + index}`;
   const title = asString(item?.title || item?.headline || item?.name);
   if (!title) return null;
+  const mediaShape = extractMediaShape(item);
+  const mediaItems = buildMediaItemsFromShape(mediaShape);
 
   return {
     id,
     type,
     title,
     excerpt: asString(item?.excerpt || item?.description || item?.body || item?.content),
-    image_url: asNullableString(item?.image_url || item?.image || item?.cover_url),
+    image_url: mediaShape.publicUrl,
+    publicUrl: mediaShape.publicUrl,
+    width: mediaShape.width,
+    height: mediaShape.height,
+    aspectRatio: mediaShape.aspectRatio,
+    aspect_ratio: mediaShape.aspectRatio,
+    mediaAspectRatio: mediaShape.aspectRatio,
+    ratioKey: mediaShape.ratioKey,
+    ratio_key: mediaShape.ratioKey,
+    mediaItems,
     location: asNullableString(item?.location || item?.venue || item?.city),
     starts_at: asNullableString(item?.starts_at || item?.start_at || item?.start_date || item?.date),
   };
@@ -496,12 +588,23 @@ const normalizeOfficialItem = (rawItem) => {
   const title = asString(rawItem.title || rawItem.headline);
   const body = asString(rawItem.body || rawItem.excerpt || rawItem.description || rawItem.content);
   if (!title && !body) return null;
+  const mediaShape = extractMediaShape(rawItem);
+  const mediaItems = buildMediaItemsFromShape(mediaShape);
   return {
     kind: 'official',
     id,
     title: title || 'TwensAI',
     body,
-    image_url: asNullableString(rawItem.image_url || rawItem.image || rawItem.cover_url),
+    image_url: mediaShape.publicUrl,
+    publicUrl: mediaShape.publicUrl,
+    width: mediaShape.width,
+    height: mediaShape.height,
+    aspectRatio: mediaShape.aspectRatio,
+    aspect_ratio: mediaShape.aspectRatio,
+    mediaAspectRatio: mediaShape.aspectRatio,
+    ratioKey: mediaShape.ratioKey,
+    ratio_key: mediaShape.ratioKey,
+    mediaItems,
     target_url: asNullableString(rawItem.target_url || rawItem.targetUrl || rawItem.url),
     pinned: Boolean(rawItem.pinned),
     created_at: asNullableString(rawItem.created_at || rawItem.createdAt),
@@ -515,6 +618,8 @@ const normalizeSponsoredItem = (rawItem) => {
   const sponsorName = asString(rawItem.sponsor_name || rawItem.sponsorName || 'Partner');
   const title = asString(rawItem.title || rawItem.headline || sponsorName);
   const body = asString(rawItem.body || rawItem.excerpt || rawItem.description || '');
+  const mediaShape = extractMediaShape(rawItem);
+  const mediaItems = buildMediaItemsFromShape(mediaShape);
 
   return {
     kind: 'sponsored',
@@ -522,7 +627,16 @@ const normalizeSponsoredItem = (rawItem) => {
     sponsor_name: sponsorName,
     title,
     body,
-    image_url: asNullableString(rawItem.image_url || rawItem.image || rawItem.cover_url),
+    image_url: mediaShape.publicUrl,
+    publicUrl: mediaShape.publicUrl,
+    width: mediaShape.width,
+    height: mediaShape.height,
+    aspectRatio: mediaShape.aspectRatio,
+    aspect_ratio: mediaShape.aspectRatio,
+    mediaAspectRatio: mediaShape.aspectRatio,
+    ratioKey: mediaShape.ratioKey,
+    ratio_key: mediaShape.ratioKey,
+    mediaItems,
     target_url: asNullableString(rawItem.target_url || rawItem.targetUrl || rawItem.url),
     start_date: asNullableString(rawItem.start_date || rawItem.startDate),
     end_date: asNullableString(rawItem.end_date || rawItem.endDate),
@@ -542,6 +656,8 @@ const normalizeHomeEventNewsItem = (rawItem) => {
   const excerpt = asNullableString(rawItem.excerpt || rawItem.summary || rawItem.description);
   const content = asNullableString(rawItem.content || rawItem.body || rawItem.text);
   if (!title && !excerpt && !content) return null;
+  const mediaShape = extractMediaShape(rawItem);
+  const mediaItems = buildMediaItemsFromShape(mediaShape);
 
   return {
     kind: 'event_news',
@@ -550,7 +666,16 @@ const normalizeHomeEventNewsItem = (rawItem) => {
     title: title || excerpt || content || 'Aggiornamento',
     excerpt,
     content,
-    image_url: asNullableString(rawItem.image_url || rawItem.image || rawItem.cover_url),
+    image_url: mediaShape.publicUrl,
+    publicUrl: mediaShape.publicUrl,
+    width: mediaShape.width,
+    height: mediaShape.height,
+    aspectRatio: mediaShape.aspectRatio,
+    aspect_ratio: mediaShape.aspectRatio,
+    mediaAspectRatio: mediaShape.aspectRatio,
+    ratioKey: mediaShape.ratioKey,
+    ratio_key: mediaShape.ratioKey,
+    mediaItems,
     location: asNullableString(rawItem.location || rawItem.venue || rawItem.city),
     starts_at: asNullableString(rawItem.starts_at || rawItem.start_at || rawItem.start_date || rawItem.date),
     ends_at: asNullableString(rawItem.ends_at || rawItem.end_at || rawItem.end_date),

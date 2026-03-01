@@ -2,10 +2,25 @@ import React, { useCallback, useMemo } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '../context/ThemeContext';
 
+const DEFAULT_CONTENT_ASPECT_RATIO = 4 / 5;
+
+const toFiniteNumber = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
 const OfficialPostCard = ({ item, isRTL, onPressTargetUrl }) => {
   const { theme } = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const hasTargetUrl = Boolean(String(item?.target_url || '').trim());
+  const sourceUri = item?.publicUrl || item?.image_url || item?.image || null;
+  const width = toFiniteNumber(item?.width);
+  const height = toFiniteNumber(item?.height);
+  const ar =
+    toFiniteNumber(item?.aspect_ratio) ||
+    toFiniteNumber(item?.mediaAspectRatio) ||
+    (width && height ? width / height : null);
+  const imageAspectRatio = ar || DEFAULT_CONTENT_ASPECT_RATIO;
 
   const handlePress = useCallback(() => {
     if (!hasTargetUrl) return;
@@ -22,7 +37,13 @@ const OfficialPostCard = ({ item, isRTL, onPressTargetUrl }) => {
       <View style={styles.headerRow}>
         <Text style={styles.badge}>TwensAI</Text>
       </View>
-      {item.image_url ? <Image source={{ uri: item.image_url }} style={styles.image} /> : null}
+      {sourceUri ? (
+        <Image
+          source={{ uri: sourceUri }}
+          style={[styles.image, { aspectRatio: imageAspectRatio }]}
+          resizeMode="cover"
+        />
+      ) : null}
       {item.title ? <Text style={[styles.title, isRTL && styles.rtlText]}>{item.title}</Text> : null}
       {item.body ? <Text style={[styles.body, isRTL && styles.rtlText]}>{item.body}</Text> : null}
       {hasTargetUrl ? <Text style={[styles.cta, isRTL && styles.rtlText]}>Apri</Text> : null}
@@ -64,7 +85,6 @@ const createStyles = (theme) =>
     },
     image: {
       width: '100%',
-      height: 180,
       borderRadius: theme.radius.md,
       marginBottom: theme.spacing.sm,
       backgroundColor: theme.colors.surfaceMuted,

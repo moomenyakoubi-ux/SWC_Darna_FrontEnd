@@ -2,6 +2,13 @@ import React, { useMemo } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '../context/ThemeContext';
 
+const DEFAULT_CONTENT_ASPECT_RATIO = 4 / 5;
+
+const toFiniteNumber = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
 const formatStartsAt = (value) => {
   if (!value) return null;
   const date = new Date(value);
@@ -16,6 +23,14 @@ const EventNewsCard = ({ item, isRTL, onPress, accessibilityRole }) => {
   const badgeLabel = isEvent ? 'Evento' : 'Notizia';
   const preview = item?.excerpt || item?.content || '';
   const eventMeta = isEvent ? [item?.location, formatStartsAt(item?.starts_at)].filter(Boolean).join(' • ') : '';
+  const sourceUri = item?.publicUrl || item?.image_url || item?.image || null;
+  const width = toFiniteNumber(item?.width);
+  const height = toFiniteNumber(item?.height);
+  const ar =
+    toFiniteNumber(item?.aspect_ratio) ||
+    toFiniteNumber(item?.mediaAspectRatio) ||
+    (width && height ? width / height : null);
+  const imageAspectRatio = ar || DEFAULT_CONTENT_ASPECT_RATIO;
 
   return (
     <Pressable
@@ -24,7 +39,13 @@ const EventNewsCard = ({ item, isRTL, onPress, accessibilityRole }) => {
       accessibilityRole={onPress ? accessibilityRole || 'button' : undefined}
       style={({ pressed }) => [styles.card, pressed && onPress && styles.pressed]}
     >
-      {item?.image_url ? <Image source={{ uri: item.image_url }} style={styles.image} /> : null}
+      {sourceUri ? (
+        <Image
+          source={{ uri: sourceUri }}
+          style={[styles.image, { aspectRatio: imageAspectRatio }]}
+          resizeMode="cover"
+        />
+      ) : null}
       <View style={styles.content}>
         <View style={styles.badgeRow}>
           <Text style={[styles.badge, isEvent ? styles.eventBadge : styles.newsBadge]}>{badgeLabel}</Text>
@@ -53,7 +74,6 @@ const createStyles = (theme) =>
     },
     image: {
       width: '100%',
-      height: 170,
       backgroundColor: theme.colors.surfaceMuted,
     },
     content: {

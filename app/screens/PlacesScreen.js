@@ -31,6 +31,11 @@ const PlacesScreen = () => {
                   title={item.name}
                   description={item.description}
                   image={item.image}
+                  publicUrl={item.publicUrl}
+                  width={item.width}
+                  height={item.height}
+                  aspect_ratio={item.aspect_ratio}
+                  mediaAspectRatio={item.mediaAspectRatio}
                   subtitle={`${item.type} • ${item.address}`}
                   isRTL={isRTL}
                 />
