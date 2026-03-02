@@ -17,13 +17,13 @@ const getActiveRouteNameFromState = (state) => {
   return currentRoute.name ?? null;
 };
 
-const resolveCurrentRouteName = (state, navigation) => {
+const resolveCurrentRouteName = ({ state, navigation }) => {
   const fromState = getActiveRouteNameFromState(state);
   if (fromState) return fromState;
+  const fromNavigationState = getActiveRouteNameFromState(navigation?.getState?.());
+  if (fromNavigationState) return fromNavigationState;
   const directRoute = navigation?.getCurrentRoute?.();
-  if (directRoute?.name) return directRoute.name;
-  const fallbackState = navigation?.getState?.();
-  return getActiveRouteNameFromState(fallbackState);
+  return directRoute?.name ?? null;
 };
 
 const WebTabBar = ({ state, descriptors, navigation }) => {
@@ -34,7 +34,9 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const widthAnim = useRef(new Animated.Value(COLLAPSED_TAB_BAR_WIDTH)).current;
   const labelOpacity = useRef(new Animated.Value(0)).current;
-  const currentRouteName = useMemo(() => resolveCurrentRouteName(state, navigation), [navigation, state]);
+  const [currentRouteName, setCurrentRouteName] = useState(() =>
+    resolveCurrentRouteName({ state, navigation }),
+  );
 
   useEffect(() => {
     Animated.parallel([
@@ -50,6 +52,24 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
       }),
     ]).start();
   }, [isExpanded, labelOpacity, widthAnim]);
+
+  useEffect(() => {
+    setCurrentRouteName(resolveCurrentRouteName({ state, navigation }));
+  }, [navigation, state]);
+
+  useEffect(() => {
+    const syncActiveRoute = () => setCurrentRouteName(resolveCurrentRouteName({ navigation }));
+    syncActiveRoute();
+    if (!navigation?.addListener) return undefined;
+
+    const unsubscribeState = navigation.addListener('state', syncActiveRoute);
+    const unsubscribeFocus = navigation.addListener('focus', syncActiveRoute);
+
+    return () => {
+      if (typeof unsubscribeState === 'function') unsubscribeState();
+      if (typeof unsubscribeFocus === 'function') unsubscribeFocus();
+    };
+  }, [navigation]);
 
   const labelWidth = widthAnim.interpolate({
     inputRange: [COLLAPSED_TAB_BAR_WIDTH, EXPANDED_TAB_BAR_WIDTH],
