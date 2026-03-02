@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text } from 'react-native';
 import { useAppTheme } from '../context/ThemeContext';
+import { Image } from 'react-native';
 
 const COLLAPSED_TAB_BAR_WIDTH = 88;
 const EXPANDED_TAB_BAR_WIDTH = 244;
@@ -99,18 +100,25 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
             ]}
           >
             {({ hovered }) => {
-              const icon =
-                typeof options.tabBarIcon === 'function'
-                  ? options.tabBarIcon({
-                      focused: isFocused,
-                      size: 22,
-                      color: isFocused
-                        ? appTheme.colors.card
-                        : hovered
-                          ? appTheme.colors.primary
-                          : appTheme.colors.secondary,
-                    })
-                  : null;
+              let icon = null;
+
+              if (route.name === 'Home') {
+              icon = (
+                <Image
+                 source={require('../assets/brand/twensa-elephant.png')}
+                 style={{
+                 width: ICON_SIZE + 4,
+                 height: ICON_SIZE + 4,
+                 tintColor: color,
+                                  }}
+                resizeMode="contain"/>);
+         } else if (options.tabBarIcon) {
+         icon = options.tabBarIcon({
+         focused: isFocused,
+          color,
+          size: ICON_SIZE,
+          });
+          }         
 
               return (
                 <>
