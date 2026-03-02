@@ -357,7 +357,7 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.headerText}>
             <Image
               source={twensaWordmark}
-              style={[styles.wordmark, isRTL && styles.wordmarkRtl]}
+              style={styles.wordmark}
               resizeMode="contain"
               accessibilityLabel={homeStrings.greeting}
             />
@@ -417,7 +417,7 @@ const HomeScreen = ({ navigation }) => {
           >
             <Image
               source={twensaWordmark}
-              style={[styles.menuTitleWordmark, isRTL && styles.menuTitleWordmarkRtl]}
+              style={styles.menuTitleWordmark}
               resizeMode="contain"
               accessibilityLabel={homeStrings.greeting}
             />
@@ -482,6 +482,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
+    alignItems: 'flex-start',
   },
   menuButton: {
     width: 44,
@@ -503,12 +504,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   wordmark: {
+    alignSelf: 'flex-start',
     height: 46,
     aspectRatio: WORDMARK_ASPECT_RATIO,
     marginBottom: theme.spacing.xs,
-  },
-  wordmarkRtl: {
-    alignSelf: 'flex-end',
   },
   subtitle: {
     color: theme.colors.card,
@@ -589,12 +588,10 @@ const styles = StyleSheet.create({
     gap: theme.spacing.lg,
   },
   menuTitleWordmark: {
+    alignSelf: 'flex-start',
     height: 36,
     aspectRatio: WORDMARK_ASPECT_RATIO,
     marginTop: Platform.OS === 'android' ? theme.spacing.sm : 0,
-  },
-  menuTitleWordmarkRtl: {
-    alignSelf: 'flex-end',
   },
   menuItems: {
     gap: theme.spacing.sm,

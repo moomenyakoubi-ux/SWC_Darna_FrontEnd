@@ -60,7 +60,7 @@ const WebSidebar = ({ title, menuStrings, navigation, isRTL }) => {
     <View style={[styles.sideMenu, isRTL && styles.sideMenuRtl, styles.sideMenuWeb]}>
       <Image
         source={twensaWordmark}
-        style={[styles.menuTitleWordmark, isRTL && styles.menuTitleWordmarkRtl]}
+        style={styles.menuTitleWordmark}
         resizeMode="contain"
         accessibilityLabel={title}
       />
@@ -136,12 +136,10 @@ const createStyles = (appTheme) =>
       alignItems: 'flex-end',
     },
     menuTitleWordmark: {
+      alignSelf: 'flex-start',
       height: 36,
       aspectRatio: WORDMARK_ASPECT_RATIO,
       marginTop: Platform.OS === 'android' ? appTheme.spacing.sm : 0,
-    },
-    menuTitleWordmarkRtl: {
-      alignSelf: 'flex-end',
     },
     menuItems: {
       gap: appTheme.spacing.sm,
