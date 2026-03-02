@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Image, Platform, StatusBar, View } from 'react-native';
-import { NavigationContainer, DefaultTheme as NavigationTheme, useNavigation } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme as NavigationTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { Asset } from 'expo-asset';
@@ -41,7 +41,6 @@ import { isUpdatePasswordLink } from './app/utils/authRedirect';
 const sharedBackgroundAsset = require('./app/images/image1.png');
 const chatBackgroundAsset = require('./app/images/image2.png');
 const twensaElephantIcon = require('./assets/brand/twensa-elephant.png');
-const ELEPHANT_ICON_VISUAL_SCALE = 1.25;
 
 const Tab = createBottomTabNavigator();
 const AUTH_ROUTES = {
@@ -80,11 +79,10 @@ const replaceAuthPath = (route) => {
   window.history.replaceState({}, '', nextPath);
 };
 
-const AppTabs = () => {
+const AppTabs = ({ navigationRef }) => {
   const { strings, isRTL } = useLanguage();
   const { theme: appTheme } = useAppTheme();
   const isWeb = Platform.OS === 'web';
-  const navigation = useNavigation();
   const hiddenTabOptions = {
     tabBarButton: () => null,
     tabBarStyle: { display: 'none' },
@@ -101,7 +99,6 @@ const AppTabs = () => {
               width: size,
               height: size,
               tintColor: color,
-              transform: [{ scale: ELEPHANT_ICON_VISUAL_SCALE }],
             }}
             resizeMode="contain"
           />
@@ -232,14 +229,14 @@ const AppTabs = () => {
       <WebSidebar
         title={sidebarTitle}
         menuStrings={strings.menu}
-        navigation={navigation}
+        navigationRef={navigationRef}
         isRTL={isRTL}
       />
     </>
   );
 };
 
-const MainApp = () => {
+const MainApp = ({ navigationRef }) => {
   const { theme: appTheme, isDark } = useAppTheme();
   const navigationTheme = useMemo(
     () => ({
@@ -259,9 +256,9 @@ const MainApp = () => {
   );
 
   return (
-    <NavigationContainer theme={navigationTheme}>
+    <NavigationContainer ref={navigationRef} theme={navigationTheme}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      <AppTabs />
+      <AppTabs navigationRef={navigationRef} />
     </NavigationContainer>
   );
 };
@@ -323,6 +320,7 @@ const ProfileLanguageSync = () => {
 const AppContent = () => {
   const { theme: appTheme } = useAppTheme();
   const { user, loading, session } = useSession();
+  const navigationRef = React.useRef(null);
   const [isUpdatePasswordEntry] = useState(() => getAuthRouteFromPath() === AUTH_ROUTES.update);
   const [forcedAuthRoute, setForcedAuthRoute] = useState(null);
   const initialAuthRoute =
@@ -383,7 +381,7 @@ const AppContent = () => {
   return (
     <>
       <ProfileLanguageSync />
-      <MainApp />
+      <MainApp navigationRef={navigationRef} />
     </>
   );
 };

@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '../context/ThemeContext';
 
 export const WEB_SIDE_MENU_WIDTH = 380;
+const MENU_ICON_SIZE = 22;
 const twensaWordmark = require('../../assets/brand/twensa-wordmark.png');
 const WORDMARK_ASPECT_RATIO = 468 / 133;
 
@@ -27,40 +28,61 @@ const getActiveRouteNameFromState = (state) => {
   return currentRoute.name ?? null;
 };
 
-const resolveCurrentRouteName = (navigation) => {
+const resolveCurrentRouteName = (navigationRef) => {
+  const navigation = navigationRef?.current;
   const directRoute = navigation?.getCurrentRoute?.();
   if (directRoute?.name) return directRoute.name;
   const state = navigation?.getState?.();
   return getActiveRouteNameFromState(state);
 };
 
-const WebSidebar = ({ title, menuStrings, navigation, isRTL }) => {
+const WebSidebar = ({ title, menuStrings, navigationRef, isRTL }) => {
   if (Platform.OS !== 'web') return null;
 
   const { theme: appTheme } = useAppTheme();
   const styles = useMemo(() => createStyles(appTheme), [appTheme]);
   const [hoveredRoute, setHoveredRoute] = useState(null);
-  const [activeRoute, setActiveRoute] = useState(() => resolveCurrentRouteName(navigation));
+  const [activeRoute, setActiveRoute] = useState(() => resolveCurrentRouteName(navigationRef));
 
   useEffect(() => {
-    const syncActiveRoute = () => setActiveRoute(resolveCurrentRouteName(navigation));
-    syncActiveRoute();
-    if (!navigation?.addListener) return undefined;
+    let unsubscribeState;
+    let unsubscribeFocus;
+    let frameId = null;
+    let isMounted = true;
 
-    const unsubscribeState = navigation.addListener('state', syncActiveRoute);
-    const unsubscribeFocus = navigation.addListener('focus', syncActiveRoute);
+    const syncActiveRoute = () => {
+      if (!isMounted) return;
+      setActiveRoute(resolveCurrentRouteName(navigationRef));
+    };
+
+    const attachListeners = () => {
+      if (!isMounted) return;
+      const navigation = navigationRef?.current;
+      syncActiveRoute();
+      if (!navigation?.addListener) {
+        frameId = requestAnimationFrame(attachListeners);
+        return;
+      }
+
+      unsubscribeState = navigation.addListener('state', syncActiveRoute);
+      unsubscribeFocus = navigation.addListener('focus', syncActiveRoute);
+    };
+
+    attachListeners();
 
     return () => {
+      isMounted = false;
+      if (frameId) cancelAnimationFrame(frameId);
       if (typeof unsubscribeState === 'function') unsubscribeState();
       if (typeof unsubscribeFocus === 'function') unsubscribeFocus();
     };
-  }, [navigation]);
+  }, [navigationRef]);
 
   return (
     <View style={[styles.sideMenu, isRTL && styles.sideMenuRtl, styles.sideMenuWeb]}>
       <Image
         source={twensaWordmark}
-        style={styles.menuTitleWordmark}
+        style={[styles.menuTitleWordmark, isRTL ? styles.menuTitleWordmarkRtl : styles.menuTitleWordmarkLtr]}
         resizeMode="contain"
         accessibilityLabel={title}
       />
@@ -93,9 +115,8 @@ const WebSidebar = ({ title, menuStrings, navigation, isRTL }) => {
               onMouseEnter={() => setHoveredRoute(item.route)}
               onMouseLeave={() => setHoveredRoute((current) => (current === item.route ? null : current))}
               onPress={() => {
-                if (navigation?.isReady?.()) navigation.navigate(item.route);
-                else if (navigation?.navigate) navigation.navigate(item.route);
-                setActiveRoute(item.route);
+                const navigation = navigationRef?.current;
+                if (navigation?.navigate) navigation.navigate(item.route);
               }}
             >
               <Ionicons name={item.icon} size={22} color={iconColor} style={styles.menuIcon} />
@@ -140,8 +161,16 @@ const createStyles = (appTheme) =>
       alignSelf: 'flex-start',
       height: 36,
       aspectRatio: WORDMARK_ASPECT_RATIO,
-      marginLeft: 0,
       marginTop: Platform.OS === 'android' ? appTheme.spacing.sm : 0,
+    },
+    menuTitleWordmarkLtr: {
+      marginLeft: MENU_ICON_SIZE + appTheme.spacing.md,
+      marginRight: 0,
+    },
+    menuTitleWordmarkRtl: {
+      alignSelf: 'flex-end',
+      marginRight: MENU_ICON_SIZE + appTheme.spacing.md,
+      marginLeft: 0,
     },
     menuItems: {
       gap: appTheme.spacing.sm,
@@ -177,7 +206,7 @@ const createStyles = (appTheme) =>
       flexDirection: 'row-reverse',
     },
     menuIcon: {
-      width: 24,
+      width: MENU_ICON_SIZE,
       textAlign: 'center',
       transitionProperty: 'color',
       transitionDuration: '200ms',

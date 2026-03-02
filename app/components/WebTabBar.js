@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '../context/ThemeContext';
 
 const COLLAPSED_TAB_BAR_WIDTH = 88;
 const EXPANDED_TAB_BAR_WIDTH = 244;
 const ANIMATION_DURATION = 220;
+const HOME_ICON_VISUAL_SCALE = 1.25;
 
 export const WEB_TAB_BAR_WIDTH = COLLAPSED_TAB_BAR_WIDTH;
 
@@ -132,7 +133,7 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
 
               return (
                 <>
-                  {icon}
+                  {icon ? <View style={route.name === 'Home' ? styles.homeIconScale : undefined}>{icon}</View> : null}
                   <Animated.View
                     style={[styles.labelWrap, { width: labelWidth, marginLeft: labelGap, opacity: labelOpacity }]}
                   >
@@ -212,6 +213,9 @@ const createStyles = (appTheme) =>
     },
     labelWrap: {
       overflow: 'hidden',
+    },
+    homeIconScale: {
+      transform: [{ scale: HOME_ICON_VISUAL_SCALE }],
     },
     label: {
       fontSize: 14,
