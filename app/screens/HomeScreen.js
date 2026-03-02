@@ -483,6 +483,7 @@ const styles = StyleSheet.create({
   headerText: {
     flex: 1,
     alignItems: 'flex-start',
+    justifyContent: 'flex-start',
   },
   menuButton: {
     width: 44,
