@@ -17,12 +17,8 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
   const widthAnim = useRef(new Animated.Value(COLLAPSED_TAB_BAR_WIDTH)).current;
   const labelOpacity = useRef(new Animated.Value(0)).current;
 
-  // Determina se la route attiva è una tab nascosta
-  const activeRoute = state.routes[state.index];
-  const activeDescriptor = descriptors[activeRoute.key];
-  const isActiveRouteHidden =
-    activeDescriptor?.options?.tabBarStyle?.display === 'none' ||
-    activeDescriptor?.options?.tabBarItemStyle?.display === 'none';
+  // Determina il nome della route attiva per confronto
+  const activeRouteName = state.routes[state.index]?.name;
 
   useEffect(() => {
     Animated.parallel([
@@ -74,8 +70,8 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
               : route.name;
         const labelText = typeof label === 'string' ? label : route.name;
 
-        // Se la route attiva è nascosta, forza isFocused a false per tutte le tab visibili
-        const isFocused = !isActiveRouteHidden && state.index === index;
+        // isFocused è true solo se questa route è quella attualmente selezionata
+        const isFocused = route.name === activeRouteName;
         const onPress = () => {
           const event = navigation.emit({
             type: 'tabPress',
