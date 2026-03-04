@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text } from 'react-native';
 import { useNavigationState } from '@react-navigation/native';
 import { useAppTheme } from '../context/ThemeContext';
@@ -9,32 +9,70 @@ const ANIMATION_DURATION = 220;
 
 export const WEB_TAB_BAR_WIDTH = COLLAPSED_TAB_BAR_WIDTH;
 
+// Estrae il nome della route attiva dallo stato di navigazione
+const getActiveRouteName = (state) => {
+  if (!state) return null;
+  
+  const route = state.routes[state.index];
+  if (!route) return null;
+  
+  // Se la route ha uno stato annidato, naviga ricorsivamente
+  if (route.state) {
+    return getActiveRouteName(route.state);
+  }
+  
+  return route.name;
+};
+
+// Verifica se una route è visibile nella tab bar (non nascosta)
+const isRouteVisible = (route, descriptors) => {
+  const descriptor = descriptors[route.key];
+  if (!descriptor) return true;
+  
+  const options = descriptor.options;
+  const isHidden =
+    options?.tabBarStyle?.display === 'none' ||
+    options?.tabBarItemStyle?.display === 'none';
+  
+  return !isHidden;
+};
+
 const WebTabBar = ({ state, descriptors, navigation }) => {
   if (Platform.OS !== 'web') return null;
 
   const { theme: appTheme } = useAppTheme();
   const styles = useMemo(() => createStyles(appTheme), [appTheme]);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [activeRouteName, setActiveRouteName] = useState(() => state.routes[state.index]?.name);
   const widthAnim = useRef(new Animated.Value(COLLAPSED_TAB_BAR_WIDTH)).current;
   const labelOpacity = useRef(new Animated.Value(0)).current;
-
-  // Ottieni lo stato di navigazione completo per tracciare i cambi
-  const navigationState = useNavigationState((state) => state);
-
-  useEffect(() => {
-    // Trova la route attiva navigando nell'albero di stato
-    let currentState = navigationState;
-    while (currentState?.routes && currentState.routes[currentState.index]) {
-      const route = currentState.routes[currentState.index];
-      if (!route.state) {
-        // Questa è la route foglia (quella effettivamente visualizzata)
-        setActiveRouteName(route.name);
-        break;
-      }
-      currentState = route.state;
+  
+  // Ottieni lo stato di navigazione completo
+  const rootState = useNavigationState((s) => s);
+  
+  // Calcola la route attiva reale (quella foglia)
+  const actualActiveRouteName = getActiveRouteName(rootState);
+  
+  // Calcola la route attiva del tab navigator
+  const tabActiveRoute = state.routes[state.index];
+  const tabActiveRouteName = tabActiveRoute?.name;
+  
+  // Determina quale tab deve apparire come "selected"
+  // Se la route attiva è visibile nella tab bar, usala
+  // Altrimenti usa la route attiva del tab navigator
+  let selectedTabName = tabActiveRouteName;
+  
+  if (actualActiveRouteName) {
+    // Cerca se la route attuale è una delle tab visibili
+    const isCurrentRouteVisibleTab = state.routes.some((route) => {
+      return route.name === actualActiveRouteName && isRouteVisible(route, descriptors);
+    });
+    
+    if (isCurrentRouteVisibleTab) {
+      selectedTabName = actualActiveRouteName;
     }
-  }, [navigationState]);
+    // Se la route attuale NON è una tab visibile, selectedTabName rimane tabActiveRouteName
+    // Ma in realtà vogliamo che NESSUNA tab sia selezionata in quel caso
+  }
 
   useEffect(() => {
     Animated.parallel([
@@ -71,10 +109,9 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
     >
       {state.routes.map((route) => {
         const { options } = descriptors[route.key];
-        const isHidden =
-          options?.tabBarStyle?.display === 'none' || options?.tabBarItemStyle?.display === 'none';
-
-        if (isHidden) {
+        
+        // Salta le tab nascoste
+        if (!isRouteVisible(route, descriptors)) {
           return null;
         }
 
@@ -86,8 +123,18 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
               : route.name;
         const labelText = typeof label === 'string' ? label : route.name;
 
-        // La tab è focused solo se corrisponde alla route attiva
-        const isFocused = route.name === activeRouteName;
+        // La tab è focused se:
+        // 1. La route attuale è questa tab (quando la route è visibile)
+        // 2. OPPURE se siamo su una schermata nascosta e questa era l'ultima tab attiva
+        // Ma in realtà vogliamo che quando siamo su schermata nascosta, NESSUNA tab sia focused
+        
+        const isCurrentRouteVisible = state.routes.some((r) => 
+          r.name === actualActiveRouteName && isRouteVisible(r, descriptors)
+        );
+        
+        const isFocused = isCurrentRouteVisible 
+          ? route.name === actualActiveRouteName 
+          : false; // Se siamo su schermata nascosta, nessuna tab è focused
 
         const onPress = () => {
           const event = navigation.emit({
