@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigationContext } from '../context/NavigationContext';
 import { useAppTheme } from '../context/ThemeContext';
 
@@ -46,10 +46,7 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
     extrapolate: 'clamp',
   });
 
-  // Ottieni la route attiva del tab navigator (per quando navighi dalla tab bar)
   const tabActiveRouteName = state.routes[state.index]?.name;
-  
-  // Usa il context se disponibile, altrimenti fallback al tab navigator
   const activeRouteName = currentRouteName || tabActiveRouteName;
 
   return (
@@ -58,6 +55,13 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
     >
+      {/* DEBUG INFO */}
+      <View style={{ position: 'absolute', top: 0, left: 0, backgroundColor: 'yellow', padding: 4, zIndex: 100 }}>
+        <Text style={{ fontSize: 10 }}>ctx: {currentRouteName || 'null'}</Text>
+        <Text style={{ fontSize: 10 }}>tab: {tabActiveRouteName || 'null'}</Text>
+        <Text style={{ fontSize: 10 }}>idx: {state.index}</Text>
+      </View>
+      
       {state.routes.map((route) => {
         const { options } = descriptors[route.key];
         const isHidden =
@@ -76,7 +80,6 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
               : route.name;
         const labelText = typeof label === 'string' ? label : route.name;
 
-        // La tab è focused se corrisponde alla route attiva
         const isFocused = route.name === activeRouteName;
 
         const onPress = () => {
