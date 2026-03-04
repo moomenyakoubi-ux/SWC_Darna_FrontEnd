@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text } from 'react-native';
+import { useNavigationState } from '@react-navigation/native';
 import { useAppTheme } from '../context/ThemeContext';
 
 const COLLAPSED_TAB_BAR_WIDTH = 88;
@@ -14,8 +15,26 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
   const { theme: appTheme } = useAppTheme();
   const styles = useMemo(() => createStyles(appTheme), [appTheme]);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [activeRouteName, setActiveRouteName] = useState(() => state.routes[state.index]?.name);
   const widthAnim = useRef(new Animated.Value(COLLAPSED_TAB_BAR_WIDTH)).current;
   const labelOpacity = useRef(new Animated.Value(0)).current;
+
+  // Ottieni lo stato di navigazione completo per tracciare i cambi
+  const navigationState = useNavigationState((state) => state);
+
+  useEffect(() => {
+    // Trova la route attiva navigando nell'albero di stato
+    let currentState = navigationState;
+    while (currentState?.routes && currentState.routes[currentState.index]) {
+      const route = currentState.routes[currentState.index];
+      if (!route.state) {
+        // Questa è la route foglia (quella effettivamente visualizzata)
+        setActiveRouteName(route.name);
+        break;
+      }
+      currentState = route.state;
+    }
+  }, [navigationState]);
 
   useEffect(() => {
     Animated.parallel([
@@ -44,16 +63,13 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
     extrapolate: 'clamp',
   });
 
-  // Nome della route attualmente attiva (dallo stato del navigatore)
-  const activeRouteName = state.routes[state.index]?.name;
-
   return (
     <Animated.View
       style={[styles.container, { width: widthAnim }]}
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
     >
-      {state.routes.map((route, index) => {
+      {state.routes.map((route) => {
         const { options } = descriptors[route.key];
         const isHidden =
           options?.tabBarStyle?.display === 'none' || options?.tabBarItemStyle?.display === 'none';
@@ -70,7 +86,7 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
               : route.name;
         const labelText = typeof label === 'string' ? label : route.name;
 
-        // La tab è focused solo se il suo nome corrisponde alla route attiva
+        // La tab è focused solo se corrisponde alla route attiva
         const isFocused = route.name === activeRouteName;
 
         const onPress = () => {
