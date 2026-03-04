@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, Text } from 'react-native';
 import { useAppTheme } from '../context/ThemeContext';
 
 const COLLAPSED_TAB_BAR_WIDTH = 88;
@@ -14,26 +14,8 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
   const { theme: appTheme } = useAppTheme();
   const styles = useMemo(() => createStyles(appTheme), [appTheme]);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(state.index);
   const widthAnim = useRef(new Animated.Value(COLLAPSED_TAB_BAR_WIDTH)).current;
   const labelOpacity = useRef(new Animated.Value(0)).current;
-
-  // Aggiorna l'indice quando cambiano le props
-  useEffect(() => {
-    setCurrentIndex(state.index);
-  }, [state.index]);
-
-  // Listener per i cambi di stato della navigazione
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('state', (e) => {
-      const navState = e.data?.state;
-      if (navState && typeof navState.index === 'number') {
-        setCurrentIndex(navState.index);
-      }
-    });
-    
-    return unsubscribe;
-  }, [navigation]);
 
   useEffect(() => {
     Animated.parallel([
@@ -48,7 +30,7 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
         useNativeDriver: false,
       }),
     ]).start();
-  }, [isExpanded]);
+  }, [isExpanded, labelOpacity, widthAnim]);
 
   const labelWidth = widthAnim.interpolate({
     inputRange: [COLLAPSED_TAB_BAR_WIDTH, EXPANDED_TAB_BAR_WIDTH],
@@ -62,32 +44,12 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
     extrapolate: 'clamp',
   });
 
-  // Ottieni la route attiva usando l'indice locale
-  const activeRoute = state.routes[currentIndex];
-  const activeRouteName = activeRoute?.name;
-  
-  // Verifica se la route attiva è visibile (non nascosta)
-  const isActiveRouteVisible = activeRoute ? (() => {
-    const descriptor = descriptors[activeRoute.key];
-    const isHidden =
-      descriptor?.options?.tabBarStyle?.display === 'none' ||
-      descriptor?.options?.tabBarItemStyle?.display === 'none';
-    return !isHidden;
-  })() : false;
-
   return (
     <Animated.View
       style={[styles.container, { width: widthAnim }]}
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
     >
-      {/* DEBUG INFO */}
-      <View style={{ position: 'absolute', bottom: 20, left: 10, backgroundColor: 'yellow', padding: 4, zIndex: 100 }}>
-        <Text style={{ fontSize: 10 }}>idx: {currentIndex}</Text>
-        <Text style={{ fontSize: 10 }}>active: {activeRouteName || 'null'}</Text>
-        <Text style={{ fontSize: 10 }}>visible: {isActiveRouteVisible ? 'yes' : 'no'}</Text>
-      </View>
-      
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const isHidden =
@@ -106,11 +68,7 @@ const WebTabBar = ({ state, descriptors, navigation }) => {
               : route.name;
         const labelText = typeof label === 'string' ? label : route.name;
 
-        // La tab è focused SOLO se:
-        // 1. Questa tab corrisponde all'indice attivo
-        // 2. E la route attiva è visibile (non nascosta)
-        const isThisTabActive = index === currentIndex;
-        const isFocused = isThisTabActive && isActiveRouteVisible;
+        const isFocused = state.index === index;
 
         const onPress = () => {
           const event = navigation.emit({

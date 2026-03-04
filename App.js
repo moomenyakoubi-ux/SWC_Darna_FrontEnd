@@ -37,7 +37,6 @@ import useSession from './app/auth/useSession';
 import useProfile from './app/profile/useProfile';
 import ErrorBoundary from './app/components/ErrorBoundary';
 import { isUpdatePasswordLink } from './app/utils/authRedirect';
-import { NavigationProvider } from './app/context/NavigationContext';
 
 const sharedBackgroundAsset = require('./app/images/image1.png');
 const chatBackgroundAsset = require('./app/images/image2.png');
@@ -389,11 +388,9 @@ export default function App() {
       <LanguageProvider>
         <ContactsProvider>
           <PostsProvider>
-            <NavigationProvider>
-              <SafeAreaProvider>
-                <AppContent />
-              </SafeAreaProvider>
-            </NavigationProvider>
+            <SafeAreaProvider>
+              <AppContent />
+            </SafeAreaProvider>
           </PostsProvider>
         </ContactsProvider>
       </LanguageProvider>
