@@ -92,7 +92,7 @@ const AppTabs = () => {
   const screenOptions = ({ route }) => ({
     tabBarIcon: ({ color, size }) => {
       const icons = {
-        Home: 'home',
+        Home: 'star',
         Chat: 'chatbubble-ellipses',
         Notizie: 'newspaper',
         Viaggi: 'airplane',
