@@ -92,9 +92,9 @@ const AppTabs = () => {
 
   const screenOptions = ({ route }) => ({
     tabBarIcon: ({ color, size, focused }) => {
-      // Icona personalizzata per Home (bandiera Tunisia)
+      // Icona personalizzata per Home (bandiera Tunisia) - PIÙ GRANDE
       if (route.name === 'Home') {
-        return <TunisiaFlagIcon size={size} color={focused ? undefined : color} />;
+        return <TunisiaFlagIcon size={size} color={focused ? undefined : color} isHome={true} />;
       }
       
       const icons = {
