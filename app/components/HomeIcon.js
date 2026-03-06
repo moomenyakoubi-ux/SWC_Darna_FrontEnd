@@ -9,7 +9,7 @@ import { Image, StyleSheet } from 'react-native';
 const HomeIcon = ({ size = 40 }) => {
   return (
     <Image
-      source={require('../assets/icon.png')}
+      source={require('../../assets/icon.png')}
       style={[styles.icon, { width: size, height: size }]}
       resizeMode="contain"
     />
