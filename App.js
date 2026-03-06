@@ -30,7 +30,6 @@ import { PostsProvider } from './app/context/PostsContext';
 import { ThemeProvider, useAppTheme } from './app/context/ThemeContext';
 import WebTabBar from './app/components/WebTabBar';
 import WebSidebar from './app/components/WebSidebar';
-import TunisiaFlagIcon from './app/components/TunisiaFlagIcon';
 import HomeIcon from './app/components/HomeIcon';
 import AuthScreen from './app/screens/AuthScreen';
 import ForgotPasswordScreen from './app/screens/ForgotPasswordScreen';

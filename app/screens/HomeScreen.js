@@ -410,9 +410,8 @@ const HomeScreen = ({ navigation }) => {
               },
             ]}
           >
-            <View style={[styles.menuTitleContainer, isRTL && styles.menuTitleContainerRtl]}>
-              <TunisiaFlagIcon size={28} />
-              <Text style={[styles.menuTitle, isRTL && styles.rtlText]}>{homeStrings.greeting}</Text>
+            <View style={[styles.menuLogoContainer, isRTL && styles.menuLogoContainerRtl]}>
+              <HomeIcon size={40} />
             </View>
             <View style={styles.menuItems}>
               {[
@@ -594,19 +593,13 @@ const styles = StyleSheet.create({
     ...theme.shadow.card,
     gap: theme.spacing.lg,
   },
-  menuTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.sm,
+  menuLogoContainer: {
+    alignItems: 'flex-start',
     marginTop: Platform.OS === 'android' ? theme.spacing.sm : 0,
+    marginBottom: theme.spacing.md,
   },
-  menuTitleContainerRtl: {
-    flexDirection: 'row-reverse',
-  },
-  menuTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: theme.colors.text,
+  menuLogoContainerRtl: {
+    alignItems: 'flex-end',
   },
   menuItems: {
     gap: theme.spacing.sm,
