@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { Platform, StyleSheet, Text, TouchableOpacity, View, Animated, Dimensions } from 'react-native';
+import { Platform, StyleSheet, Text, TouchableOpacity, View, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '../context/ThemeContext';
 
 const MENU_WIDTH = 320;
-const ANIMATION_DURATION = 300;
+const ANIMATION_DURATION = 350;
 
 const getMenuItems = (menuStrings) => [
   { label: menuStrings.addContact, icon: 'person-add', route: 'AddContact' },
@@ -33,19 +33,26 @@ const resolveCurrentRouteName = (navigation) => {
   return getActiveRouteNameFromState(state);
 };
 
-const WebSidebar = ({ title, menuStrings, navigation, isRTL }) => {
+const WebSidebar = ({ menuStrings, navigation, isRTL }) => {
   if (Platform.OS !== 'web') return null;
 
   const { theme: appTheme } = useAppTheme();
   const styles = useMemo(() => createStyles(appTheme), [appTheme]);
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredRoute, setHoveredRoute] = useState(null);
+  const [pressedRoute, setPressedRoute] = useState(null);
   const [activeRoute, setActiveRoute] = useState(() => resolveCurrentRouteName(navigation));
 
   // Animation values
   const slideAnim = useMemo(() => new Animated.Value(MENU_WIDTH), []);
   const backdropOpacity = useMemo(() => new Animated.Value(0), []);
-  const menuButtonScale = useMemo(() => new Animated.Value(1), []);
+  
+  // Hamburger morphing animation values
+  const topLineAnim = useMemo(() => new Animated.Value(0), []);
+  const middleLineAnim = useMemo(() => new Animated.Value(1), []);
+  const bottomLineAnim = useMemo(() => new Animated.Value(0), []);
+  const buttonRotation = useMemo(() => new Animated.Value(0), []);
+  const buttonScale = useMemo(() => new Animated.Value(1), []);
 
   useEffect(() => {
     const syncActiveRoute = () => setActiveRoute(resolveCurrentRouteName(navigation));
@@ -62,6 +69,7 @@ const WebSidebar = ({ title, menuStrings, navigation, isRTL }) => {
   }, [navigation]);
 
   useEffect(() => {
+    // Menu slide animation
     Animated.parallel([
       Animated.timing(slideAnim, {
         toValue: isOpen ? 0 : MENU_WIDTH,
@@ -73,25 +81,46 @@ const WebSidebar = ({ title, menuStrings, navigation, isRTL }) => {
         duration: ANIMATION_DURATION,
         useNativeDriver: true,
       }),
+      // Hamburger morphing to X
+      Animated.timing(topLineAnim, {
+        toValue: isOpen ? 1 : 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(middleLineAnim, {
+        toValue: isOpen ? 0 : 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(bottomLineAnim, {
+        toValue: isOpen ? 1 : 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(buttonRotation, {
+        toValue: isOpen ? 1 : 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
     ]).start();
-  }, [isOpen, slideAnim, backdropOpacity]);
+  }, [isOpen, slideAnim, backdropOpacity, topLineAnim, middleLineAnim, bottomLineAnim, buttonRotation]);
 
   const handleMenuPress = useCallback(() => {
     // Button press animation
     Animated.sequence([
-      Animated.timing(menuButtonScale, {
+      Animated.timing(buttonScale, {
         toValue: 0.9,
         duration: 100,
         useNativeDriver: true,
       }),
-      Animated.timing(menuButtonScale, {
+      Animated.timing(buttonScale, {
         toValue: 1,
         duration: 100,
         useNativeDriver: true,
       }),
     ]).start();
-    setIsOpen(true);
-  }, [menuButtonScale]);
+    setIsOpen(!isOpen);
+  }, [isOpen, buttonScale]);
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
@@ -104,28 +133,58 @@ const WebSidebar = ({ title, menuStrings, navigation, isRTL }) => {
     setIsOpen(false);
   }, [navigation]);
 
+  // Interpolations for hamburger morphing
+  const topLineTranslateY = topLineAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 7],
+  });
+  const topLineRotation = topLineAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '45deg'],
+  });
+  const bottomLineTranslateY = bottomLineAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -7],
+  });
+  const bottomLineRotation = bottomLineAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '-45deg'],
+  });
+  const buttonRotate = buttonRotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '180deg'],
+  });
+
   return (
     <>
-      {/* Hamburger Button - Fixed Top Right */}
+      {/* Morphing Hamburger Button - Fixed Top Right */}
       <Animated.View
         style={[
           styles.hamburgerContainer,
-          { transform: [{ scale: menuButtonScale }] },
+          { 
+            transform: [
+              { scale: buttonScale },
+              { rotate: buttonRotate }
+            ] 
+          },
         ]}
       >
         <TouchableOpacity
-          style={styles.hamburgerButton}
+          style={[
+            styles.hamburgerButton,
+            isOpen && styles.hamburgerButtonActive
+          ]}
           onPress={handleMenuPress}
           activeOpacity={0.8}
           onMouseEnter={() => {
-            Animated.timing(menuButtonScale, {
-              toValue: 1.05,
+            Animated.timing(buttonScale, {
+              toValue: 1.08,
               duration: 150,
               useNativeDriver: true,
             }).start();
           }}
           onMouseLeave={() => {
-            Animated.timing(menuButtonScale, {
+            Animated.timing(buttonScale, {
               toValue: 1,
               duration: 150,
               useNativeDriver: true,
@@ -133,9 +192,40 @@ const WebSidebar = ({ title, menuStrings, navigation, isRTL }) => {
           }}
         >
           <View style={styles.hamburgerIcon}>
-            <View style={[styles.hamburgerLine, { backgroundColor: appTheme.colors.card }]} />
-            <View style={[styles.hamburgerLine, { backgroundColor: appTheme.colors.card }]} />
-            <View style={[styles.hamburgerLine, { backgroundColor: appTheme.colors.card }]} />
+            <Animated.View 
+              style={[
+                styles.hamburgerLine, 
+                { 
+                  backgroundColor: isOpen ? appTheme.colors.primary : appTheme.colors.card,
+                  transform: [
+                    { translateY: topLineTranslateY },
+                    { rotate: topLineRotation }
+                  ]
+                }
+              ]} 
+            />
+            <Animated.View 
+              style={[
+                styles.hamburgerLine, 
+                { 
+                  backgroundColor: isOpen ? appTheme.colors.primary : appTheme.colors.card,
+                  opacity: middleLineAnim,
+                  transform: [{ scaleX: middleLineAnim }]
+                }
+              ]} 
+            />
+            <Animated.View 
+              style={[
+                styles.hamburgerLine, 
+                { 
+                  backgroundColor: isOpen ? appTheme.colors.primary : appTheme.colors.card,
+                  transform: [
+                    { translateY: bottomLineTranslateY },
+                    { rotate: bottomLineRotation }
+                  ]
+                }
+              ]} 
+            />
           </View>
         </TouchableOpacity>
       </Animated.View>
@@ -156,7 +246,7 @@ const WebSidebar = ({ title, menuStrings, navigation, isRTL }) => {
         </TouchableOpacity>
       )}
 
-      {/* Slide-out Menu */}
+      {/* Morphing Slide-out Menu */}
       <Animated.View
         style={[
           styles.sideMenu,
@@ -164,11 +254,9 @@ const WebSidebar = ({ title, menuStrings, navigation, isRTL }) => {
           { transform: [{ translateX: isRTL ? -slideAnim : slideAnim }] },
         ]}
       >
-        {/* Menu Header */}
+        {/* Menu Header - Solo bottone chiusura */}
         <View style={styles.menuHeader}>
-          <Text style={[styles.menuTitle, isRTL && styles.rtlText]}>
-            {menuStrings.userProfile || 'Menu'}
-          </Text>
+          <View style={{ flex: 1 }} />
           <TouchableOpacity
             style={styles.closeButton}
             onPress={handleClose}
@@ -178,21 +266,28 @@ const WebSidebar = ({ title, menuStrings, navigation, isRTL }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Menu Items */}
+        {/* Menu Items - Animated like WebTabBar */}
         <View style={styles.menuItems}>
           {getMenuItems(menuStrings).map((item, index) => {
             const isActive = activeRoute === item.route;
             const isHovered = hoveredRoute === item.route;
+            const isPressed = pressedRoute === item.route;
+            
             const iconColor = isActive
-              ? appTheme.colors.primary
+              ? appTheme.colors.card
               : isHovered
-                ? appTheme.colors.secondary
-                : appTheme.colors.muted;
+                ? appTheme.colors.primary
+                : appTheme.colors.secondary;
             const labelColor = isActive
-              ? appTheme.colors.primary
+              ? appTheme.colors.card
               : isHovered
-                ? appTheme.colors.text
+                ? appTheme.colors.primary
                 : appTheme.colors.text;
+            const bgColor = isActive
+              ? appTheme.colors.secondary
+              : isHovered
+                ? 'rgba(231, 0, 19, 0.10)'
+                : 'transparent';
 
             return (
               <TouchableOpacity
@@ -203,20 +298,23 @@ const WebSidebar = ({ title, menuStrings, navigation, isRTL }) => {
                   isRTL && styles.menuItemRtl,
                   isActive && styles.menuItemActive,
                   !isActive && isHovered && styles.menuItemHover,
+                  isPressed && styles.menuItemPressed,
                 ]}
                 onMouseEnter={() => setHoveredRoute(item.route)}
                 onMouseLeave={() => setHoveredRoute((current) => (current === item.route ? null : current))}
+                onPressIn={() => setPressedRoute(item.route)}
+                onPressOut={() => setPressedRoute((current) => (current === item.route ? null : current))}
                 onPress={() => handleMenuItemPress(item.route)}
               >
-                <View style={[styles.iconContainer, isActive && styles.iconContainerActive]}>
-                  <Ionicons name={item.icon} size={20} color={iconColor} />
-                </View>
+                <Animated.View style={[
+                  styles.iconContainer,
+                  { backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : appTheme.colors.background }
+                ]}>
+                  <Ionicons name={item.icon} size={22} color={iconColor} />
+                </Animated.View>
                 <Text style={[styles.menuLabel, isRTL && styles.rtlText, { color: labelColor }]}>
                   {item.label}
                 </Text>
-                {isActive && (
-                  <View style={styles.activeIndicator} />
-                )}
               </TouchableOpacity>
             );
           })}
@@ -235,7 +333,7 @@ const WebSidebar = ({ title, menuStrings, navigation, isRTL }) => {
 
 const createStyles = (appTheme) =>
   StyleSheet.create({
-    // Hamburger Button Styles
+    // Hamburger Button Styles - Morphing
     hamburgerContainer: {
       position: 'fixed',
       top: 20,
@@ -243,29 +341,39 @@ const createStyles = (appTheme) =>
       zIndex: 10001,
     },
     hamburgerButton: {
-      width: 48,
-      height: 48,
-      borderRadius: 14,
+      width: 52,
+      height: 52,
+      borderRadius: 16,
       backgroundColor: appTheme.colors.secondary,
       alignItems: 'center',
       justifyContent: 'center',
       ...appTheme.shadow.card,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 8,
-      elevation: 5,
+      shadowOpacity: 0.25,
+      shadowRadius: 12,
+      elevation: 8,
+      transitionProperty: 'background-color, box-shadow',
+      transitionDuration: '300ms',
+      transitionTimingFunction: 'ease-out',
+    },
+    hamburgerButtonActive: {
+      backgroundColor: appTheme.colors.card,
+      shadowColor: appTheme.colors.primary,
+      shadowOpacity: 0.3,
     },
     hamburgerIcon: {
-      width: 22,
-      height: 16,
+      width: 24,
+      height: 20,
       justifyContent: 'space-between',
       alignItems: 'center',
     },
     hamburgerLine: {
-      width: 22,
-      height: 2.5,
-      borderRadius: 1.5,
+      width: 24,
+      height: 3,
+      borderRadius: 2,
+      transitionProperty: 'background-color',
+      transitionDuration: '300ms',
     },
 
     // Backdrop Styles
@@ -293,97 +401,88 @@ const createStyles = (appTheme) =>
       zIndex: 9999,
       ...appTheme.shadow.card,
       shadowColor: '#000',
-      shadowOffset: { width: -4, height: 0 },
-      shadowOpacity: 0.15,
-      shadowRadius: 20,
-      elevation: 10,
+      shadowOffset: { width: -8, height: 0 },
+      shadowOpacity: 0.2,
+      shadowRadius: 30,
+      elevation: 15,
     },
     sideMenuRtl: {
       right: 'auto',
       left: 0,
-      shadowOffset: { width: 4, height: 0 },
+      shadowOffset: { width: 8, height: 0 },
     },
 
     // Menu Header
     menuHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-end',
       paddingHorizontal: appTheme.spacing.lg,
       paddingTop: 24,
-      paddingBottom: appTheme.spacing.lg,
-      borderBottomWidth: 1,
-      borderBottomColor: appTheme.colors.divider,
-    },
-    menuTitle: {
-      fontSize: 22,
-      fontWeight: '800',
-      color: appTheme.colors.text,
+      paddingBottom: appTheme.spacing.md,
     },
     closeButton: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       backgroundColor: appTheme.colors.background,
       alignItems: 'center',
       justifyContent: 'center',
+      transitionProperty: 'background-color, transform',
+      transitionDuration: '200ms',
     },
 
-    // Menu Items
+    // Menu Items - Stile WebTabBar
     menuItems: {
       flex: 1,
       paddingHorizontal: appTheme.spacing.md,
       paddingTop: appTheme.spacing.lg,
-      gap: appTheme.spacing.xs,
+      gap: appTheme.spacing.sm,
     },
     menuItem: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: appTheme.spacing.md,
+      width: '100%',
+      paddingVertical: appTheme.spacing.sm,
+      paddingHorizontal: appTheme.spacing.md,
+      borderRadius: appTheme.radius.md,
+      minHeight: 56,
     },
     menuItemRtl: {
       flexDirection: 'row-reverse',
     },
     menuItemWeb: {
-      minHeight: 52,
-      paddingVertical: 12,
-      paddingHorizontal: appTheme.spacing.md,
-      borderRadius: 12,
-      backgroundColor: 'transparent',
-      transitionProperty: 'background-color, transform',
+      transitionProperty: 'background-color, transform, opacity',
       transitionDuration: '200ms',
       transitionTimingFunction: 'ease-out',
+      transform: [{ scale: 1 }],
+      opacity: 1,
     },
     menuItemHover: {
-      backgroundColor: 'rgba(231, 0, 19, 0.08)',
+      backgroundColor: 'rgba(231, 0, 19, 0.10)',
+      transform: [{ scale: 1.03 }],
+    },
+    menuItemPressed: {
+      transform: [{ scale: 0.98 }],
+      opacity: 0.92,
     },
     menuItemActive: {
-      backgroundColor: 'rgba(231, 0, 19, 0.12)',
+      backgroundColor: appTheme.colors.secondary,
     },
     iconContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 10,
-      backgroundColor: appTheme.colors.background,
+      width: 44,
+      height: 44,
+      borderRadius: 12,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    iconContainerActive: {
-      backgroundColor: 'rgba(231, 0, 19, 0.15)',
     },
     menuLabel: {
       flex: 1,
       fontSize: 15,
-      fontWeight: '600',
+      fontWeight: '700',
       transitionProperty: 'color',
       transitionDuration: '200ms',
-      transitionTimingFunction: 'ease-out',
-    },
-    activeIndicator: {
-      width: 4,
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: appTheme.colors.primary,
     },
 
     // Menu Footer
