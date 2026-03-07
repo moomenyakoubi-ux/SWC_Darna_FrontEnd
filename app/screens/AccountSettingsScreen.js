@@ -51,11 +51,17 @@ const AccountSettingsScreen = () => {
   const { user } = useSession();
   const [notifications, setNotifications] = useState(true);
   const [logoutLoading, setLogoutLoading] = useState(false);
+  const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
 
   const languageOptions = [
     { code: 'it', label: languageStrings.italian },
     { code: 'ar', label: languageStrings.arabic },
   ];
+
+  const handleLanguageSelect = (code) => {
+    setLanguage(code);
+    setLanguageDropdownOpen(false);
+  };
 
   const handleLogout = async () => {
     if (logoutLoading) return;
@@ -122,33 +128,59 @@ const AccountSettingsScreen = () => {
 
         <View style={styles.card}>
           <Text style={[styles.sectionTitle, isRTL && styles.rtlText]}>{languageStrings.title}</Text>
-          <View style={[styles.languageOptions, isRTL && styles.rowReverse]}>
-            {languageOptions.map((option) => {
-              const isActive = option.code === language;
-              return (
-                <TouchableOpacity
-                  key={option.code}
-                  style={[
-                    styles.languageOption,
-                    isActive && styles.languageOptionActive,
-                  ]}
-                  onPress={() => setLanguage(option.code)}
-                >
-                  <Text
+          
+          {/* Language Dropdown */}
+          <View style={styles.dropdownContainer}>
+            <TouchableOpacity
+              style={[styles.dropdownTrigger, isRTL && styles.rowReverse]}
+              onPress={() => setLanguageDropdownOpen(!languageDropdownOpen)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.dropdownTriggerContent, isRTL && styles.dropdownTriggerContentRtl]}>
+                <Ionicons name="globe-outline" size={20} color={appTheme.colors.secondary} />
+                <Text style={[styles.dropdownTriggerText, isRTL && styles.rtlText]}>
+                  {language === 'it' ? languageStrings.italian : languageStrings.arabic}
+                </Text>
+              </View>
+              <Ionicons 
+                name={languageDropdownOpen ? 'chevron-up' : 'chevron-down'} 
+                size={20} 
+                color={appTheme.colors.muted} 
+              />
+            </TouchableOpacity>
+            
+            {languageDropdownOpen && (
+              <View style={[styles.dropdownMenu, isRTL && styles.dropdownMenuRtl]}>
+                {languageOptions.map((option, index) => (
+                  <TouchableOpacity
+                    key={option.code}
                     style={[
-                      styles.languageOptionLabel,
-                      isActive && styles.languageOptionLabelActive,
-                      isRTL && styles.rtlText,
+                      styles.dropdownItem,
+                      index === 0 && styles.dropdownItemFirst,
+                      index === languageOptions.length - 1 && styles.dropdownItemLast,
+                      isRTL && styles.dropdownItemRtl,
                     ]}
+                    onPress={() => handleLanguageSelect(option.code)}
+                    activeOpacity={0.7}
                   >
-                    {option.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+                    <Text style={[
+                      styles.dropdownItemText,
+                      isRTL && styles.rtlText,
+                      option.code === language && styles.dropdownItemTextActive
+                    ]}>
+                      {option.label}
+                    </Text>
+                    {option.code === language && (
+                      <Ionicons name="checkmark" size={18} color={appTheme.colors.secondary} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
+          
           <Text style={[styles.helper, isRTL && styles.rtlText]}>
-            {languageStrings.currentLabel}: {language === 'it' ? languageStrings.italian : languageStrings.arabic}
+            {languageStrings.helper}
           </Text>
         </View>
 
@@ -318,35 +350,83 @@ const createStyles = (appTheme) =>
     settingIconRtl: {
       transform: [{ scaleX: -1 }],
     },
-    languageOptions: {
+    dropdownContainer: {
+      position: 'relative',
+      zIndex: 10,
+    },
+    dropdownTrigger: {
       flexDirection: 'row',
-      gap: appTheme.spacing.md,
-    },
-    languageOption: {
-      flex: 1,
-      paddingVertical: appTheme.spacing.lg,
-      borderRadius: appTheme.radius.lg,
-      borderWidth: 1,
-      borderColor: appTheme.colors.secondary,
       alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: appTheme.colors.card,
+      justifyContent: 'space-between',
+      paddingHorizontal: appTheme.spacing.md,
+      paddingVertical: 12,
+      borderRadius: appTheme.radius.md,
+      borderWidth: 1,
+      borderColor: appTheme.colors.border,
+      backgroundColor: appTheme.colors.background,
     },
-    languageOptionActive: {
-      backgroundColor: appTheme.colors.secondary,
+    dropdownTriggerContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: appTheme.spacing.sm,
     },
-    languageOptionLabel: {
-      fontSize: 18,
+    dropdownTriggerContentRtl: {
+      flexDirection: 'row-reverse',
+    },
+    dropdownTriggerText: {
+      fontSize: 16,
       fontWeight: '600',
-      color: appTheme.colors.secondary,
-      textAlign: 'center',
+      color: appTheme.colors.text,
     },
-    languageOptionLabelActive: {
-      color: appTheme.colors.card,
+    dropdownMenu: {
+      position: 'absolute',
+      top: '100%',
+      left: 0,
+      right: 0,
+      marginTop: 4,
+      backgroundColor: appTheme.colors.card,
+      borderRadius: appTheme.radius.md,
+      borderWidth: 1,
+      borderColor: appTheme.colors.border,
+      ...appTheme.shadow.card,
+      zIndex: 100,
+    },
+    dropdownMenuRtl: {
+      left: 0,
+      right: 0,
+    },
+    dropdownItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: appTheme.spacing.md,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: appTheme.colors.border,
+    },
+    dropdownItemRtl: {
+      flexDirection: 'row-reverse',
+    },
+    dropdownItemFirst: {
+      borderTopLeftRadius: appTheme.radius.md,
+      borderTopRightRadius: appTheme.radius.md,
+    },
+    dropdownItemLast: {
+      borderBottomWidth: 0,
+      borderBottomLeftRadius: appTheme.radius.md,
+      borderBottomRightRadius: appTheme.radius.md,
+    },
+    dropdownItemText: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: appTheme.colors.text,
+    },
+    dropdownItemTextActive: {
+      color: appTheme.colors.secondary,
     },
     helper: {
-      marginTop: appTheme.spacing.md,
-      fontSize: 14,
+      marginTop: appTheme.spacing.sm,
+      fontSize: 13,
       color: appTheme.colors.muted,
     },
   });
