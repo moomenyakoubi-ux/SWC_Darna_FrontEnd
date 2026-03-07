@@ -154,6 +154,12 @@ const WebSidebar = ({ menuStrings, navigation, isRTL }) => {
     inputRange: [0, 1],
     outputRange: ['0deg', '180deg'],
   });
+  
+  // RTL slide interpolation - must use explicit interpolation for negative values
+  const slideAnimRtl = slideAnim.interpolate({
+    inputRange: [0, MENU_WIDTH],
+    outputRange: [0, -MENU_WIDTH],
+  });
 
   return (
     <>
@@ -252,7 +258,7 @@ const WebSidebar = ({ menuStrings, navigation, isRTL }) => {
         style={[
           styles.sideMenu,
           isRTL && styles.sideMenuRtl,
-          { transform: [{ translateX: isRTL ? -slideAnim : slideAnim }] },
+          { transform: [{ translateX: isRTL ? slideAnimRtl : slideAnim }] },
         ]}
       >
         {/* Menu Header - Solo bottone chiusura */}
@@ -412,7 +418,7 @@ const createStyles = (appTheme) =>
       elevation: 15,
     },
     sideMenuRtl: {
-      right: 'auto',
+      right: undefined,
       left: 0,
       shadowOffset: { width: 8, height: 0 },
     },
