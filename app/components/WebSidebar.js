@@ -163,11 +163,10 @@ const WebSidebar = ({ menuStrings, navigation, isRTL }) => {
 
   return (
     <>
-      {/* Morphing Hamburger Button - Fixed Top Right/Left based on RTL */}
+      {/* Morphing Hamburger Button - Fixed Top Right ALWAYS */}
       <Animated.View
         style={[
           styles.hamburgerContainer,
-          isRTL && styles.hamburgerContainerRtl,
           { 
             transform: [
               { scale: buttonScale },
@@ -347,10 +346,7 @@ const createStyles = (appTheme) =>
       right: 20,
       zIndex: 10001,
     },
-    hamburgerContainerRtl: {
-      right: 'auto',
-      left: 20,
-    },
+
     hamburgerButton: {
       width: 52,
       height: 52,
