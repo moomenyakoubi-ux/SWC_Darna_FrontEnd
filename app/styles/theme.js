@@ -1,3 +1,5 @@
+export const gradientColors = ['#0066CC', '#00CCFF'];
+
 const spacing = {
   xs: 6,
   sm: 10,

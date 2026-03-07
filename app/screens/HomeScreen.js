@@ -20,6 +20,7 @@ import OfficialPostCard from '../components/OfficialPostCard';
 import SponsoredCard from '../components/SponsoredCard';
 import EventNewsCard from '../components/EventNewsCard';
 import theme from '../styles/theme';
+import { GradientButton } from '../components/GradientButton';
 import { useLanguage } from '../context/LanguageContext';
 import { WEB_TAB_BAR_WIDTH } from '../components/WebTabBar';
 import HomeIcon from '../components/HomeIcon';
@@ -300,9 +301,9 @@ const HomeScreen = ({ navigation }) => {
             <Text style={[styles.feedErrorText, isRTL && styles.rtlText]}>
               {homeFeedError?.message || 'Errore caricamento feed.'}
             </Text>
-            <Pressable style={styles.retryButton} onPress={() => loadHomeFeed({ reset: true })}>
-              <Text style={styles.retryButtonText}>{retryLabel}</Text>
-            </Pressable>
+            <GradientButton onPress={() => loadHomeFeed({ reset: true })}>
+              {retryLabel}
+            </GradientButton>
           </View>
         ) : null}
       </View>
@@ -498,17 +499,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
   },
-  retryButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.md,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs + 2,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-  },
+
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',

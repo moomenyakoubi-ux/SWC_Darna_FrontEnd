@@ -16,6 +16,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import theme from '../styles/theme';
+import { GradientPill, GradientBubble } from '../components/GradientButton';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLanguage } from '../context/LanguageContext';
 import WebSidebar, { WEB_SIDE_MENU_WIDTH } from '../components/WebSidebar';
 import { WEB_TAB_BAR_WIDTH } from '../components/WebTabBar';
@@ -78,12 +80,19 @@ const ChatComposer = React.memo(
           textAlign={isRTL ? 'right' : 'left'}
           writingDirection={isRTL ? 'rtl' : 'ltr'}
         />
-        <TouchableOpacity style={styles.sendButton} onPress={onSubmit} disabled={sending}>
-          {sending ? (
-            <ActivityIndicator size="small" color={theme.colors.card} />
-          ) : (
-            <Ionicons name="send" size={20} color={theme.colors.card} />
-          )}
+        <TouchableOpacity onPress={onSubmit} disabled={sending} activeOpacity={0.8}>
+          <LinearGradient
+            colors={['#0066CC', '#00CCFF']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.sendButton, sending && styles.sendButtonDisabled]}
+          >
+            {sending ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Ionicons name="send" size={20} color="#FFFFFF" />
+            )}
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </View>
@@ -618,10 +627,10 @@ const ChatScreen = ({ navigation, route }) => {
                 {chat.lastMessageText}
               </Text>
             </View>
-            <View style={styles.openPill}>
-              <Ionicons name="arrow-forward" size={18} color={theme.colors.card} />
+            <GradientPill>
+              <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
               <Text style={styles.openPillText}>{chatStrings.openChat}</Text>
-            </View>
+            </GradientPill>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -857,18 +866,10 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     fontWeight: '600',
   },
-  openPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 6,
-    borderRadius: theme.radius.sm,
-  },
   openPillText: {
     color: '#FFFFFF',
     fontWeight: '700',
+    fontSize: 13,
   },
   chatWrapper: {
     flex: 1,
@@ -968,6 +969,11 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     borderBottomRightRadius: theme.radius.sm,
   },
+  gradientBubble: {
+    borderBottomRightRadius: theme.radius.sm,
+    maxWidth: '80%',
+    padding: theme.spacing.md,
+  },
   bubbleAi: {
     backgroundColor: 'rgba(255,255,255,0.95)',
     borderBottomLeftRadius: theme.radius.sm,
@@ -1009,9 +1015,13 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     marginLeft: theme.spacing.sm,
-    backgroundColor: theme.colors.secondary,
     borderRadius: theme.radius.sm,
     padding: theme.spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendButtonDisabled: {
+    opacity: 0.7,
   },
   typingRow: {
     flexDirection: 'row',
@@ -1042,7 +1052,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.sm,
     borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.primary,
+    backgroundColor: '#0066CC',
   },
   loadMoreButtonDisabled: {
     opacity: 0.7,
