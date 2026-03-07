@@ -1,4 +1,5 @@
 import { getApiBaseUrl, getSupabaseAccessToken, logHealthCheck } from '../config/api';
+import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 
 const PERMESSO_KEYWORDS = [
   'permesso di soggiorno',
@@ -46,9 +47,10 @@ export const askAI = async (question, options = {}) => {
     lang,
   };
   if (__DEV__) {
-    console.log('[askAI] payload', payload);
+    // Log ridotto - non espone il contenuto della domanda
+    console.log('[askAI] request intent:', intent);
   }
-  const response = await fetch(`${baseUrl}/api/ai/ask`, {
+  const response = await fetchWithTimeout(`${baseUrl}/api/ai/ask`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
+import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 
 let hasLoggedHealthCheck = false;
 
@@ -33,15 +34,15 @@ export const logHealthCheck = async () => {
       console.log('[api] health check skipped: missing access token.');
       return;
     }
-    const response = await fetch(healthUrl, {
+    const response = await fetchWithTimeout(healthUrl, {
       headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    }, 10000); // 10s timeout per health check
     const contentType = response.headers.get('content-type') || '';
     const body = contentType.includes('application/json')
       ? await response.json()
       : await response.text();
     console.log('[api] health check status', response.status);
-    console.log('[api] health check body', body);
+    // Body omesso per sicurezza - potrebbe contenere dati sensibili
   } catch (error) {
     console.log('[api] health check failed', error?.message || error);
   }

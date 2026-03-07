@@ -40,9 +40,35 @@ const AuthScreen = ({ onForgotPassword }) => {
     setMode(nextMode);
   };
 
+  // Validazione email
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Validazione password (min 8 caratteri, almeno 1 lettera e 1 numero)
+  const validatePassword = (password) => {
+    if (password.length < 8) return false;
+    const hasLetter = /[a-zA-Z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    return hasLetter && hasNumber;
+  };
+
   const handleAuth = async (mode) => {
-    if (!email.trim() || !password) {
+    const trimmedEmail = email.trim();
+    
+    if (!trimmedEmail || !password) {
       setErrorMessage('Inserisci email e password.');
+      return;
+    }
+
+    if (!validateEmail(trimmedEmail)) {
+      setErrorMessage('Inserisci un indirizzo email valido.');
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      setErrorMessage('La password deve essere di almeno 8 caratteri e contenere lettere e numeri.');
       return;
     }
 

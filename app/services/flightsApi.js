@@ -1,4 +1,5 @@
 import { getApiBaseUrl, getSupabaseAccessToken } from '../config/api';
+import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 
 /**
  * @typedef {Object} FlightSearchRequest
@@ -53,7 +54,7 @@ export const searchFlights = async (request) => {
     throw authError;
   }
 
-  const response = await fetch(`${baseUrl}/api/flights/search-country`, {
+  const response = await fetchWithTimeout(`${baseUrl}/api/flights/search-country`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -63,6 +64,13 @@ export const searchFlights = async (request) => {
   });
 
   if (!response.ok) {
+    // Gestione errori 401/403 - logout automatico
+    if (response.status === 401 || response.status === 403) {
+      const authError = new Error('Session expired. Please sign in again.');
+      authError.code = 'AUTH_REQUIRED';
+      throw authError;
+    }
+
     const contentType = response.headers.get('content-type') || '';
     let details = '';
 
@@ -77,7 +85,7 @@ export const searchFlights = async (request) => {
       details = '';
     }
 
-    const statusInfo = `${response.status}${response.statusText ? ` ${response.statusText}` : ''}`;
+    const statusInfo = `${response.status}${response.statusText ? ` ${response.statusText}` : ''}`; 
     const errorMessage = details
       ? `Flight search failed (${statusInfo}): ${details}`
       : `Flight search failed (${statusInfo}).`;

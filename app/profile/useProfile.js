@@ -111,12 +111,10 @@ const useProfile = () => {
       setLoading(true);
       setError(null);
 
-      console.log('UPDATE PROFILE payload:', {
-        userId: user?.id,
-        full_name: trimmedFullName,
-        language: updates.language,
-        bio: updates.bio,
-      });
+      if (__DEV__) {
+        // Log ridotto - non espone dati personali
+        console.log('[useProfile] updating profile for user:', user?.id?.slice(0, 8) + '...');
+      }
 
       const { data, error: updateError, status, count } = await supabase
         .from('profiles')

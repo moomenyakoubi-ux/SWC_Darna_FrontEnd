@@ -8,7 +8,8 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "plugins": [
-      "expo-splash-screen"
+      "expo-splash-screen",
+      "expo-secure-store"
     ],
     "splash": {
       "image": "./assets/darna-splash-screen.png",
