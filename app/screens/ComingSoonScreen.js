@@ -5,12 +5,33 @@ import { useLanguage } from '../context/LanguageContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import theme from '../styles/theme';
 
-const ComingSoonScreen = ({ title, icon = 'construct' }) => {
+const ComingSoonScreen = ({ title, icon = 'construct', onBack }) => {
   const { strings, isRTL } = useLanguage();
   const isWeb = Platform.OS === 'web';
 
   return (
     <View style={styles.container}>
+      {onBack && (
+        <TouchableOpacity
+          style={[styles.backButton, isRTL && styles.backButtonRtl]}
+          onPress={onBack}
+          activeOpacity={0.8}
+        >
+          <LinearGradient
+            colors={['#0066CC', '#00CCFF']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.backButtonGradient}
+          >
+            <Ionicons
+              name={isRTL ? 'chevron-forward' : 'chevron-back'}
+              size={20}
+              color="#FFFFFF"
+            />
+          </LinearGradient>
+        </TouchableOpacity>
+      )}
+
       <LinearGradient
         colors={['#0066CC', '#00CCFF']}
         start={{ x: 0, y: 0 }}
@@ -44,6 +65,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: theme.spacing.xl,
+    paddingTop: 80, // Spazio per il bottone indietro
+  },
+  backButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 40,
+    left: 20,
+    zIndex: 100,
+    ...theme.shadow.card,
+  },
+  backButtonRtl: {
+    left: 'auto',
+    right: 20,
+  },
+  backButtonGradient: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   iconContainer: {
     width: 100,
