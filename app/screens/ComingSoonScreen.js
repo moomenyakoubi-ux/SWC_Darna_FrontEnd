@@ -37,6 +37,7 @@ const ComingSoonScreen = ({ title, icon = 'construct', onBack }) => {
         </TouchableOpacity>
       )}
 
+      <View style={styles.spacer} />
       <LinearGradient
         colors={['#0066CC', '#00CCFF']}
         start={{ x: 0, y: 0 }}
@@ -70,11 +71,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: theme.spacing.xl,
-    paddingTop: 80, // Spazio per il bottone indietro
+    // NOTA: nessun paddingTop qui, gestito dal contenuto interno
+  },
+  spacer: {
+    height: Platform.OS === 'ios' ? 90 : 70, // Spazio per il bottone indietro
   },
   backButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 40,
+    top: Platform.OS === 'ios' ? 50 : 30, // Stessa altezza per entrambe le schermate
     left: 20,
     zIndex: 100,
     ...theme.shadow.card,

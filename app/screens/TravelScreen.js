@@ -1221,8 +1221,7 @@ const TravelScreen = ({ navigation }) => {
 
   // Flights - Original Content
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={[styles.container, isWeb && styles.containerWeb, styles.containerWithPadding]}>
+    <View style={[styles.container, isWeb && styles.containerWeb]}>
           <TouchableOpacity
             style={[
               styles.backButtonUnified, 
@@ -1422,7 +1421,6 @@ const TravelScreen = ({ navigation }) => {
             isRTL={isRTL}
           />
       </View>
-    </SafeAreaView>
   );
 };
 
@@ -1496,7 +1494,7 @@ const styles = StyleSheet.create({
   },
   backButtonUnified: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 40,
+    top: Platform.OS === 'ios' ? 50 : 30, // Stessa altezza di ComingSoonScreen (senza SafeAreaView)
     left: 20,
     zIndex: 100,
     ...theme.shadow.card,
@@ -1528,9 +1526,7 @@ const styles = StyleSheet.create({
   containerWeb: {
     paddingLeft: WEB_TAB_BAR_WIDTH,
   },
-  containerWithPadding: {
-    paddingTop: Platform.OS === 'ios' ? 80 : 60, // Spazio per il bottone indietro (stesso di ComingSoonScreen)
-  },
+
   // Original styles
   background: {
     flex: 1,
@@ -1541,7 +1537,7 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
+    paddingTop: Platform.OS === 'ios' ? 90 : 70, // Spazio per il bottone indietro (50/30 + margine)
     paddingBottom: theme.spacing.xl,
   },
   webList: {
