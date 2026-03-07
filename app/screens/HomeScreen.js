@@ -582,7 +582,7 @@ const styles = StyleSheet.create({
   menuItems: {
     flex: 1,
     paddingHorizontal: theme.spacing.md,
-    paddingTop: theme.spacing.lg,
+    paddingTop: theme.spacing.xs, // Ridotto per spostare i tasti verso l'alto
     gap: theme.spacing.sm,
   },
   menuItem: {
