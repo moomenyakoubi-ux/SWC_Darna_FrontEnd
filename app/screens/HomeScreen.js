@@ -22,7 +22,6 @@ import SponsoredCard from '../components/SponsoredCard';
 import EventNewsCard from '../components/EventNewsCard';
 import theme from '../styles/theme';
 import { useLanguage } from '../context/LanguageContext';
-import { WEB_SIDE_MENU_WIDTH } from '../components/WebSidebar';
 import { WEB_TAB_BAR_WIDTH } from '../components/WebTabBar';
 import HomeIcon from '../components/HomeIcon';
 import { supabase } from '../lib/supabase';
@@ -98,7 +97,7 @@ const HomeScreen = ({ navigation }) => {
   const [loadingMoreFeed, setLoadingMoreFeed] = useState(false);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const sideMenuWidth = isWeb ? WEB_SIDE_MENU_WIDTH : 280;
+  const sideMenuWidth = isWeb ? 0 : 280;
   const slideAnim = useRef(new Animated.Value(isWeb ? 1 : 0)).current;
   const requestInFlightRef = useRef(false);
   const feedOffsetRef = useRef(0);
@@ -294,6 +293,8 @@ const HomeScreen = ({ navigation }) => {
   const listHeader = useMemo(
     () => (
       <View>
+        {/* Spazio iniziale per web */}
+        {isWeb && <View style={styles.webTopSpacer} />}
         <SectionHeader title={homeStrings.communityPosts} isRTL={isRTL} />
         {homeFeedError && homeFeedItems.length > 0 ? (
           <View style={styles.feedErrorBox}>
@@ -307,7 +308,7 @@ const HomeScreen = ({ navigation }) => {
         ) : null}
       </View>
     ),
-    [homeFeedError, homeFeedItems.length, homeStrings.communityPosts, isRTL, loadHomeFeed, retryLabel],
+    [homeFeedError, homeFeedItems.length, homeStrings.communityPosts, isRTL, isWeb, loadHomeFeed, retryLabel],
   );
 
   const listEmpty = useMemo(() => {
@@ -351,14 +352,9 @@ const HomeScreen = ({ navigation }) => {
       imageStyle={styles.backgroundImage}
     >
       <View style={styles.overlay}>
-        <View style={[styles.header, isRTL && styles.headerRtl, isWeb && styles.headerWeb]}>
-          <View style={styles.headerText}>
-            <View style={[styles.logoContainer, isRTL && styles.logoContainerRtl]}>
-              <HomeIcon size={48} />
-            </View>
-            <Text style={[styles.subtitle, isRTL && styles.rtlText]}>{homeStrings.subtitle}</Text>
-          </View>
-          {!isWeb ? (
+        {/* Header rimosso per web e mobile - solo menu hamburger per mobile */}
+        {!isWeb && (
+          <View style={[styles.mobileHeader, isRTL && styles.mobileHeaderRtl]}>
             <TouchableOpacity
               accessibilityLabel={menuStrings.language}
               style={styles.menuButton}
@@ -366,8 +362,8 @@ const HomeScreen = ({ navigation }) => {
             >
               <Ionicons name="menu" size={26} color={theme.colors.card} />
             </TouchableOpacity>
-          ) : null}
-        </View>
+          </View>
+        )}
 
         <FlatList
           data={homeFeedItems}
@@ -379,8 +375,11 @@ const HomeScreen = ({ navigation }) => {
           contentContainerStyle={[
             styles.content,
             isWeb && {
-              paddingRight: sideMenuWidth + theme.spacing.lg,
+              paddingRight: theme.spacing.lg,
               paddingLeft: WEB_TAB_BAR_WIDTH + theme.spacing.lg,
+              maxWidth: 900,
+              alignSelf: 'center',
+              width: '100%',
             },
           ]}
           onEndReached={handleEndReached}
@@ -390,6 +389,7 @@ const HomeScreen = ({ navigation }) => {
           showsVerticalScrollIndicator={false}
         />
 
+        {/* Mobile Side Menu */}
         {isMenuOpen && !isWeb && (
           <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={() => setIsMenuOpen(false)} />
         )}
@@ -397,13 +397,13 @@ const HomeScreen = ({ navigation }) => {
           <Animated.View
             style={[
               styles.sideMenu,
-              { width: sideMenuWidth },
+              { width: sideMenuWidth || 280 },
               {
                 transform: [
                   {
                     translateX: slideAnim.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [sideMenuWidth, 0],
+                      outputRange: [sideMenuWidth || 280, 0],
                     }),
                   },
                 ],
@@ -457,23 +457,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(12, 27, 51, 0.6)',
   },
-  header: {
+  
+  // Mobile Header - solo bottone menu
+  mobileHeader: {
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.xl + theme.spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: theme.spacing.lg,
+    justifyContent: 'flex-end',
     marginBottom: theme.spacing.md,
   },
-  headerWeb: {
-    paddingLeft: theme.spacing.lg + WEB_TAB_BAR_WIDTH,
-  },
-  headerRtl: {
+  mobileHeaderRtl: {
     flexDirection: 'row-reverse',
-  },
-  headerText: {
-    flex: 1,
   },
   menuButton: {
     width: 44,
@@ -483,6 +478,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  
+  // Web spacing
+  webTopSpacer: {
+    height: 20,
+  },
+  
   content: {
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.md,
@@ -493,33 +494,6 @@ const styles = StyleSheet.create({
   },
   cmsItemWrapWeb: {
     alignItems: 'center',
-  },
-  logoContainer: {
-    alignItems: 'flex-start',
-    marginBottom: theme.spacing.sm,
-  },
-  logoContainerRtl: {
-    alignItems: 'flex-end',
-  },
-  greetingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.sm,
-    marginBottom: theme.spacing.xs,
-  },
-  greetingContainerRtl: {
-    flexDirection: 'row-reverse',
-  },
-  greeting: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: theme.colors.card,
-  },
-  subtitle: {
-    color: theme.colors.card,
-    opacity: 0.9,
-    marginBottom: theme.spacing.lg,
-    lineHeight: 20,
   },
   feedErrorBox: {
     backgroundColor: 'rgba(214, 69, 69, 0.08)',

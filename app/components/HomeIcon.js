@@ -2,7 +2,7 @@ import React from 'react';
 import { Image, StyleSheet } from 'react-native';
 
 /**
- * Icona principale dell'app Twensa (porta tunisina stilizzata)
+ * Icona principale dell'app Darna (porta tunisina stilizzata)
  * Logo che rappresenta Sidi Bou Said con colori blu gradient
  * #0066CC → #00CCFF (tech feel)
  */

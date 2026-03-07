@@ -27,7 +27,7 @@ const translations = {
       supportDescription: 'Trova i riferimenti per assistenza, contatti e segnalazioni.',
     },
       home: {
-        greeting: 'Twensa',
+        greeting: 'Darna',
         subtitle: 'Notizie, eventi e consigli per la comunità tunisina in Italia',
         featuredNews: 'Notizie in evidenza',
         culturalEvents: 'Eventi culturali',
@@ -40,10 +40,10 @@ const translations = {
     chat: {
       title: 'Chat',
       listTitle: 'Chat recenti',
-      aiTitle: 'Twensa AI',
+      aiTitle: 'Darna AI',
       aiTyping: 'Sto scrivendo...',
       aiError: 'Errore: AI non disponibile in questo momento.',
-      aiEmptyState: 'Inizia una conversazione con TwensAI.',
+      aiEmptyState: 'Inizia una conversazione con Darna AI.',
       debugSourcesLabel: 'Fonti usate',
       debugNoSources: 'Nessuna fonte.',
       statusOnline: 'Online',
@@ -53,7 +53,7 @@ const translations = {
         {
           id: 'm-1',
           sender: 'ai',
-          text: 'Ciao! Sono TwensAI, ti aiuto con notizie, eventi e consigli sulla comunità tunisina in Italia.',
+          text: 'Ciao! Sono Darna AI, ti aiuto con notizie, eventi e consigli sulla comunità tunisina in Italia.',
         },
         {
           id: 'm-2',
@@ -66,7 +66,7 @@ const translations = {
           text: 'Prova "La Medina" in Viale Monza: cous cous, brik e musica dal vivo il venerdì.',
         },
       ],
-      aiReply: 'Grazie per il messaggio! Sono TwensAI e posso suggerirti festival, voli o eventi vicini.',
+      aiReply: 'Grazie per il messaggio! Sono Darna AI e posso suggerirti festival, voli o eventi vicini.',
       typing: 'Sta scrivendo...',
       openChat: 'Apri chat',
       backToList: 'Tutte le chat',
@@ -166,7 +166,7 @@ const translations = {
       supportDescription: 'اعثر على قنوات الدعم والتواصل والإبلاغ.',
     },
     home: {
-      greeting: 'Twensa',
+      greeting: 'Darna',
       subtitle: 'أخبار وفعاليات ونصائح للجالية التونسية في إيطاليا',
       featuredNews: 'أخبار مختارة',
       culturalEvents: 'فعاليات ثقافية',
@@ -179,10 +179,10 @@ const translations = {
     chat: {
       title: 'المحادثات',
       listTitle: 'الدردشات الأخيرة',
-      aiTitle: 'TwensAI',
+      aiTitle: 'Darna AI',
       aiTyping: 'يكتب الآن...',
       aiError: 'عذراً، لا يمكنني الرد الآن. حاول لاحقاً.',
-      aiEmptyState: 'ابدأ محادثة مع TwensAI.',
+      aiEmptyState: 'ابدأ محادثة مع Darna AI.',
       debugSourcesLabel: 'المصادر المستخدمة',
       debugNoSources: 'لا توجد مصادر.',
       statusOnline: 'متصل',
@@ -192,7 +192,7 @@ const translations = {
         {
           id: 'm-1',
           sender: 'ai',
-          text: 'مرحباً! أنا TwensAI هنا لأساعدك بالأخبار والفعاليات والنصائح للجالية التونسية في إيطاليا.',
+          text: 'مرحباً! أنا Darna AI هنا لأساعدك بالأخبار والفعاليات والنصائح للجالية التونسية في إيطاليا.',
         },
         {
           id: 'm-2',
@@ -205,7 +205,7 @@ const translations = {
           text: 'جرّب "المدينة" في فيالي مونزا: كسكسي وبريك وموسيقى حية مساء الجمعة.',
         },
       ],
-      aiReply: 'شكراً على رسالتك! أنا TwensAI وأستطيع اقتراح مهرجانات أو رحلات أو فعاليات قريبة.',
+      aiReply: 'شكراً على رسالتك! أنا Darna AI وأستطيع اقتراح مهرجانات أو رحلات أو فعاليات قريبة.',
       typing: 'يكتب الآن...',
       openChat: 'افتح المحادثة',
       backToList: 'كل الدردشات',

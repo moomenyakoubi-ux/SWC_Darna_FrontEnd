@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Twensa",
-    "slug": "Twensa",
+    "name": "Darna",
+    "slug": "Darna",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/twensa-icon.png",
@@ -17,7 +17,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.momen.ai.Twensa"
+      "bundleIdentifier": "com.momen.ai.Darna"
     },
     "android": {
       "adaptiveIcon": {
@@ -25,7 +25,7 @@
         "backgroundColor": "#0066CC"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.momen.ai.Twensa"
+      "package": "com.momen.ai.Darna"
     },
     "web": {},
     "extra": {

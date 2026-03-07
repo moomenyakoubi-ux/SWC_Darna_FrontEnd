@@ -134,23 +134,20 @@ const AppTabs = () => {
 
   const navigatorProps = isWeb ? { tabBar: (props) => <WebTabBar {...props} /> } : {};
 
-  // Titolo per la sidebar web con icona Tunisia
-  const sidebarTitle = strings.home?.greeting || strings.menu?.userProfile;
-
   // Opzioni tab: su mobile nascoste (solo icone), su web visibili
   const getTabOptions = (label, isMainTab = false) => {
     if (Platform.OS !== 'web' && isMainTab) {
       // Mobile: nascondi le label dei tab principali
       return { tabBarLabel: undefined };
     }
-    // Web: mostra le label, Home diventa "Twensa"
+    // Web: mostra le label, Home diventa "Darna"
     return { tabBarLabel: label };
   };
 
   return (
     <>
       <Tab.Navigator screenOptions={screenOptions} {...navigatorProps}>
-      <Tab.Screen name="Home" component={HomeScreen} options={getTabOptions('Twensa', true)} />
+      <Tab.Screen name="Home" component={HomeScreen} options={getTabOptions('Darna', true)} />
       <Tab.Screen name="Chat" component={ChatScreen} options={getTabOptions(strings.tabs.chat, true)} />
       <Tab.Screen name="Notizie" component={NewsScreen} options={getTabOptions(strings.tabs.news, true)} />
       <Tab.Screen name="Viaggi" component={TravelScreen} options={getTabOptions(strings.tabs.travel, true)} />
@@ -226,7 +223,6 @@ const AppTabs = () => {
       />
       </Tab.Navigator>
       <WebSidebar
-        title={sidebarTitle}
         menuStrings={strings.menu}
         navigation={navigation}
         isRTL={isRTL}
