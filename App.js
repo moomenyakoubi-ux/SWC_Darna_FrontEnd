@@ -11,6 +11,7 @@ import HomeScreen from './app/screens/HomeScreen';
 import ChatScreen from './app/screens/ChatScreen';
 import NewsScreen from './app/screens/NewsScreen';
 import TravelScreen from './app/screens/TravelScreen';
+import ShippingScreen from './app/screens/ShippingScreen';
 
 import ProfileScreen from './app/screens/ProfileScreen';
 import AccountSettingsScreen from './app/screens/AccountSettingsScreen';
@@ -101,6 +102,7 @@ const AppTabs = () => {
         Chat: 'chatbubble-ellipses',
         Notizie: 'newspaper',
         Viaggi: 'airplane',
+        Spedizioni: 'cube',
 
         Profilo: 'person',
         AccountSettings: 'settings',
@@ -151,6 +153,7 @@ const AppTabs = () => {
       <Tab.Screen name="Chat" component={ChatScreen} options={getTabOptions(strings.tabs.chat, true)} />
       <Tab.Screen name="Notizie" component={NewsScreen} options={getTabOptions(strings.tabs.news, true)} />
       <Tab.Screen name="Viaggi" component={TravelScreen} options={getTabOptions(strings.tabs.travel, true)} />
+      <Tab.Screen name="Spedizioni" component={ShippingScreen} options={getTabOptions(strings.tabs?.shipping || 'Spedizioni', true)} />
 
       <Tab.Screen
         name="Profilo"

@@ -20,6 +20,8 @@ import { useLanguage } from '../context/LanguageContext';
 import WebSidebar, { WEB_SIDE_MENU_WIDTH } from '../components/WebSidebar';
 import { WEB_TAB_BAR_WIDTH } from '../components/WebTabBar';
 import { searchFlights } from '../services/flightsApi';
+import ComingSoonScreen from './ComingSoonScreen';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const backgroundImage = require('../images/image1.png');
 const STORAGE_KEY = 'twensai_flights_filters_v1';
@@ -153,6 +155,7 @@ const TravelScreen = ({ navigation }) => {
   const [formError, setFormError] = useState('');
   const [requestError, setRequestError] = useState('');
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [travelMode, setTravelMode] = useState(null); // 'flights' | 'ferries'
   const [anchor, setAnchor] = useState(null);
   const [dirtyFilters, setDirtyFilters] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -1109,6 +1112,96 @@ const TravelScreen = ({ navigation }) => {
           : styles.bannerInfo;
   const filterSummary = buildFilterSummary();
 
+  // Travel Mode Selection Screen
+  if (travelMode === null) {
+    return (
+      <View style={styles.modeContainer}>
+        <View style={styles.modeHeader}>
+          <Text style={[styles.modeTitle, isRTL && styles.rtlText]}>
+            {travelStrings?.selectMode || 'Scegli il tipo di viaggio'}
+          </Text>
+          <Text style={[styles.modeSubtitle, isRTL && styles.rtlText]}>
+            {travelStrings?.selectModeSubtitle || 'Come vuoi viaggiare?'}
+          </Text>
+        </View>
+
+        <View style={styles.modeOptions}>
+          <TouchableOpacity
+            style={[styles.modeCard, isRTL && styles.modeCardRtl]}
+            onPress={() => setTravelMode('flights')}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={['#0066CC', '#00CCFF']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.modeIconBox}
+            >
+              <Text style={styles.modeIcon}>✈️</Text>
+            </LinearGradient>
+            <View style={[styles.modeTextContainer, isRTL && styles.modeTextContainerRtl]}>
+              <Text style={[styles.modeCardTitle, isRTL && styles.rtlText]}>
+                {travelStrings?.flights || 'Voli'}
+              </Text>
+              <Text style={[styles.modeCardDesc, isRTL && styles.rtlText]}>
+                {travelStrings?.flightsDesc || 'Cerca voli tra Italia e Tunisia'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.modeCard, isRTL && styles.modeCardRtl]}
+            onPress={() => setTravelMode('ferries')}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={['#0066CC', '#00CCFF']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.modeIconBox}
+            >
+              <Text style={styles.modeIcon}>⛴️</Text>
+            </LinearGradient>
+            <View style={[styles.modeTextContainer, isRTL && styles.modeTextContainerRtl]}>
+              <Text style={[styles.modeCardTitle, isRTL && styles.rtlText]}>
+                {travelStrings?.ferries || 'Traghetti'}
+              </Text>
+              <Text style={[styles.modeCardDesc, isRTL && styles.rtlText]}>
+                {travelStrings?.ferriesDesc || 'Prenota traghetti per la Tunisia'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <WebSidebar
+          title={sidebarTitle}
+          menuStrings={menuStrings}
+          navigation={navigation}
+          isRTL={isRTL}
+        />
+      </View>
+    );
+  }
+
+  // Ferries - Coming Soon
+  if (travelMode === 'ferries') {
+    return (
+      <View style={{ flex: 1 }}>
+        <TouchableOpacity
+          style={[styles.backButton, isRTL && styles.backButtonRtl]}
+          onPress={() => setTravelMode(null)}
+        >
+          <Text style={styles.backButtonText}>← {travelStrings?.back || 'Indietro'}</Text>
+        </TouchableOpacity>
+        <ComingSoonScreen
+          title={travelStrings?.ferries || 'Traghetti'}
+          icon="boat"
+        />
+      </View>
+    );
+  }
+
+  // Flights - Original Content
   return (
     <ImageBackground
       source={backgroundImage}
@@ -1118,6 +1211,12 @@ const TravelScreen = ({ navigation }) => {
     >
       <SafeAreaView style={styles.safeArea}>
         <View style={[styles.overlay, isWeb && styles.overlayWeb]}>
+          <TouchableOpacity
+            style={[styles.backButtonFloating, isRTL && styles.backButtonFloatingRtl]}
+            onPress={() => setTravelMode(null)}
+          >
+            <Text style={styles.backButtonFloatingText}>← {travelStrings?.back || 'Indietro'}</Text>
+          </TouchableOpacity>
           <FlatList
             ref={flatListRef}
             key={`flights-${listResetKey}`}
@@ -1298,6 +1397,117 @@ const TravelScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  // Travel Mode Selection Styles
+  modeContainer: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.xl,
+  },
+  modeHeader: {
+    marginBottom: theme.spacing.xl,
+    alignItems: 'center',
+  },
+  modeTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
+  },
+  modeSubtitle: {
+    fontSize: 14,
+    color: theme.colors.muted,
+  },
+  modeOptions: {
+    gap: theme.spacing.md,
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  modeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.lg,
+    padding: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    ...theme.shadow.card,
+  },
+  modeCardRtl: {
+    flexDirection: 'row-reverse',
+  },
+  modeIconBox: {
+    width: 64,
+    height: 64,
+    borderRadius: theme.radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modeIcon: {
+    fontSize: 32,
+  },
+  modeTextContainer: {
+    flex: 1,
+    marginHorizontal: theme.spacing.md,
+  },
+  modeTextContainerRtl: {
+    alignItems: 'flex-end',
+  },
+  modeCardTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: theme.colors.text,
+    marginBottom: 2,
+  },
+  modeCardDesc: {
+    fontSize: 13,
+    color: theme.colors.muted,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    zIndex: 100,
+    backgroundColor: theme.colors.card,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    ...theme.shadow.card,
+  },
+  backButtonRtl: {
+    left: 'auto',
+    right: 20,
+  },
+  backButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.primary,
+  },
+  backButtonFloating: {
+    position: 'absolute',
+    top: 8,
+    left: theme.spacing.lg,
+    zIndex: 100,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.1)',
+  },
+  backButtonFloatingRtl: {
+    left: 'auto',
+    right: theme.spacing.lg,
+  },
+  backButtonFloatingText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.primary,
+  },
+  // Original styles
   background: {
     flex: 1,
   },
