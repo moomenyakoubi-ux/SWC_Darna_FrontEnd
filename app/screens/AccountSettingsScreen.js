@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Platform,
   SafeAreaView,
@@ -7,6 +8,7 @@ import {
   StyleSheet,
   Switch,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -21,6 +23,7 @@ import { useAppTheme } from '../context/ThemeContext';
 import { WEB_TAB_BAR_WIDTH } from '../components/WebTabBar';
 import { WEB_SIDE_MENU_WIDTH } from '../components/WebSidebar';
 import useSession from '../auth/useSession';
+import useProfile from '../profile/useProfile';
 
 const SettingRow = ({ icon, label, description, value, onToggle, isRTL, styles, appTheme }) => (
   <View style={[styles.settingRow, isRTL && styles.rowReverse]}>
@@ -49,9 +52,12 @@ const AccountSettingsScreen = () => {
   const { language: languageStrings } = strings;
   const navigation = useNavigation();
   const { user } = useSession();
+  const { profile, updateProfile, loading: profileLoading } = useProfile();
   const [notifications, setNotifications] = useState(true);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [savingName, setSavingName] = useState(false);
 
   const languageOptions = [
     { code: 'it', label: languageStrings.italian },
@@ -61,6 +67,29 @@ const AccountSettingsScreen = () => {
   const handleLanguageSelect = (code) => {
     setLanguage(code);
     setLanguageDropdownOpen(false);
+  };
+
+  useEffect(() => {
+    if (profile?.full_name) {
+      setFullName(profile.full_name);
+    }
+  }, [profile?.full_name]);
+
+  const handleSaveFullName = async () => {
+    const trimmed = fullName.trim();
+    if (!trimmed) {
+      Alert.alert('Errore', menuStrings.usernameEmptyError);
+      return;
+    }
+    setSavingName(true);
+    try {
+      await updateProfile({ full_name: trimmed });
+      Alert.alert('Successo', menuStrings.usernameUpdated);
+    } catch (err) {
+      Alert.alert('Errore', err?.message || menuStrings.usernameError);
+    } finally {
+      setSavingName(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -185,7 +214,35 @@ const AccountSettingsScreen = () => {
         </View>
 
         <View style={styles.card}>
-          <Text style={[styles.sectionTitle, isRTL && styles.rtlText]}>Sicurezza</Text>
+          <Text style={[styles.sectionTitle, isRTL && styles.rtlText]}>{menuStrings.userProfile}</Text>
+          <View style={styles.fieldRow}>
+            <Text style={[styles.fieldLabel, isRTL && styles.rtlText]}>{menuStrings.username}</Text>
+            <View style={[styles.inputRow, isRTL && styles.rowReverse]}>
+              <TextInput
+                style={[styles.textInput, isRTL && styles.rtlText]}
+                value={fullName}
+                onChangeText={setFullName}
+                placeholder={menuStrings.usernamePlaceholder}
+                placeholderTextColor={appTheme.colors.muted}
+                maxLength={100}
+                editable={!profileLoading && !savingName}
+              />
+              <TouchableOpacity
+                style={[
+                  styles.saveButton,
+                  (savingName || !fullName.trim() || fullName.trim() === profile?.full_name) && styles.saveButtonDisabled,
+                ]}
+                onPress={handleSaveFullName}
+                disabled={savingName || !fullName.trim() || fullName.trim() === profile?.full_name}
+              >
+                {savingName ? (
+                  <ActivityIndicator size="small" color={appTheme.colors.card} />
+                ) : (
+                  <Text style={styles.saveButtonText}>{menuStrings.save}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
           <View style={styles.fieldRow}>
             <Text style={[styles.fieldLabel, isRTL && styles.rtlText]}>Email</Text>
             <Text style={[styles.fieldValue, isRTL && styles.rtlText]}>{user?.email || '-'}</Text>
@@ -289,6 +346,40 @@ const createStyles = (appTheme) =>
     },
     fieldRow: {
       gap: 4,
+    },
+    inputRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: appTheme.spacing.sm,
+      marginTop: appTheme.spacing.xs,
+    },
+    textInput: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: appTheme.colors.border,
+      borderRadius: appTheme.radius.md,
+      paddingHorizontal: appTheme.spacing.md,
+      paddingVertical: 10,
+      fontSize: 16,
+      color: appTheme.colors.text,
+      backgroundColor: appTheme.colors.background,
+    },
+    saveButton: {
+      backgroundColor: appTheme.colors.secondary,
+      paddingHorizontal: appTheme.spacing.md,
+      paddingVertical: 10,
+      borderRadius: appTheme.radius.md,
+      minWidth: 80,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    saveButtonDisabled: {
+      opacity: 0.6,
+    },
+    saveButtonText: {
+      color: appTheme.colors.card,
+      fontWeight: '700',
+      fontSize: 14,
     },
     fieldLabel: {
       color: appTheme.colors.muted,
