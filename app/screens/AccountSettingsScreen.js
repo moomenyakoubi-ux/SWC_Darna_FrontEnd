@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Linking from 'expo-linking';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import Navbar from '../components/Navbar';
@@ -58,6 +59,8 @@ const AccountSettingsScreen = () => {
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
   const [fullName, setFullName] = useState('');
   const [savingName, setSavingName] = useState(false);
+  const [passwordResetLoading, setPasswordResetLoading] = useState(false);
+  const [passwordResetCooldown, setPasswordResetCooldown] = useState(0);
 
   const languageOptions = [
     { code: 'it', label: languageStrings.italian },
@@ -90,6 +93,47 @@ const AccountSettingsScreen = () => {
     } finally {
       setSavingName(false);
     }
+  };
+
+  useEffect(() => {
+    if (passwordResetCooldown <= 0) return undefined;
+    const intervalId = setInterval(() => {
+      setPasswordResetCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [passwordResetCooldown]);
+
+  const buildResetRedirectUrl = () => {
+    if (Platform.OS === 'web') {
+      return `${window.location.origin}/auth/update-password`;
+    }
+    return Linking.createURL('auth/update-password');
+  };
+
+  const handleChangePassword = async () => {
+    if (!user?.email) {
+      Alert.alert('Errore', 'Email non disponibile.');
+      return;
+    }
+    if (passwordResetCooldown > 0) {
+      Alert.alert('Attendi', `Riprova tra ${passwordResetCooldown} secondi.`);
+      return;
+    }
+
+    setPasswordResetLoading(true);
+    const redirectTo = buildResetRedirectUrl();
+    const { error } = await supabase.auth.resetPasswordForEmail(user.email, { redirectTo });
+
+    if (error) {
+      Alert.alert('Errore', error.message || 'Impossibile inviare il link.');
+    } else {
+      Alert.alert(
+        'Link inviato',
+        menuStrings.passwordResetSent || "Ti abbiamo inviato un'email con il link per cambiare la password. Controlla la tua casella di posta."
+      );
+      setPasswordResetCooldown(60);
+    }
+    setPasswordResetLoading(false);
   };
 
   const handleLogout = async () => {
@@ -247,9 +291,20 @@ const AccountSettingsScreen = () => {
             <Text style={[styles.fieldLabel, isRTL && styles.rtlText]}>Email</Text>
             <Text style={[styles.fieldValue, isRTL && styles.rtlText]}>{user?.email || '-'}</Text>
           </View>
-          <TouchableOpacity style={[styles.actionRow, isRTL && styles.rowReverse]}>
+          <TouchableOpacity 
+            style={[styles.actionRow, isRTL && styles.rowReverse]}
+            onPress={handleChangePassword}
+            disabled={passwordResetLoading || passwordResetCooldown > 0}
+          >
             <Ionicons name="key" size={20} color={appTheme.colors.secondary} />
-            <Text style={[styles.actionText, isRTL && styles.rtlText]}>Cambia password</Text>
+            <Text style={[styles.actionText, isRTL && styles.rtlText]}>
+              {passwordResetLoading 
+                ? menuStrings.sending 
+                : passwordResetCooldown > 0 
+                  ? `${menuStrings.retryIn || 'Riprova tra'} ${passwordResetCooldown}s`
+                  : menuStrings.changePassword
+              }
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.actionRow, isRTL && styles.rowReverse]}>
             <Ionicons name="shield-checkmark" size={20} color={appTheme.colors.secondary} />
