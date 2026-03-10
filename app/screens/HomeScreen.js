@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   // Mobile Header - solo bottone menu
   mobileHeader: {
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xl + theme.spacing.sm,
+    paddingTop: Platform.OS === 'ios' ? 50 : theme.spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
@@ -491,7 +491,7 @@ const styles = StyleSheet.create({
   
   content: {
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
+    paddingTop: theme.spacing.sm,
     paddingBottom: theme.spacing.xl + 40,
   },
   cmsItemWrap: {
