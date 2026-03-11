@@ -184,11 +184,6 @@ const NotificationsSummary = ({ isRTL = false, maxItems = 5 }) => {
     setNotifications([]);
   };
 
-  // Se non ci sono notifiche e non è in loading, non mostrare nulla
-  if (!loading && notifications.length === 0 && !error) {
-    return null;
-  }
-
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -207,14 +202,18 @@ const NotificationsSummary = ({ isRTL = false, maxItems = 5 }) => {
           )}
         </View>
         <View style={[styles.headerActions, isRTL && styles.headerActionsRtl]}>
-          <TouchableOpacity onPress={handleViewAll} style={styles.headerButton}>
-            <Text style={styles.viewAllText}>
-              {strings.notifications?.viewAll || 'Vedi tutte'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleDismiss} style={styles.closeButton}>
-            <Ionicons name="close" size={18} color={theme.colors.muted} />
-          </TouchableOpacity>
+          {notifications.length > 0 && (
+            <>
+              <TouchableOpacity onPress={handleViewAll} style={styles.headerButton}>
+                <Text style={styles.viewAllText}>
+                  {strings.notifications?.viewAll || 'Vedi tutte'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleDismiss} style={styles.closeButton}>
+                <Ionicons name="close" size={18} color={theme.colors.muted} />
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </View>
 
@@ -234,6 +233,13 @@ const NotificationsSummary = ({ isRTL = false, maxItems = 5 }) => {
               {strings.notifications?.retry || 'Riprova'}
             </Text>
           </TouchableOpacity>
+        </View>
+      ) : notifications.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="notifications-off-outline" size={24} color={theme.colors.muted} />
+          <Text style={[styles.emptyText, isRTL && styles.rtlText]}>
+            {strings?.empty || 'Nessuna notifica'}
+          </Text>
         </View>
       ) : (
         <View style={styles.notificationsList}>
@@ -382,6 +388,16 @@ const styles = StyleSheet.create({
   rtlText: {
     textAlign: 'right',
     writingDirection: 'rtl',
+  },
+  emptyContainer: {
+    paddingVertical: theme.spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.sm,
+  },
+  emptyText: {
+    fontSize: 13,
+    color: theme.colors.muted,
   },
 });
 
