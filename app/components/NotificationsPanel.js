@@ -369,8 +369,9 @@ const AnimatedNotificationItem = ({ notification, isRTL, strings, onPress, onOpt
 };
 
 // Componente campanella con badge animato
-export const NotificationBell = ({ count, onPress, isRTL }) => {
+export const NotificationBell = ({ count, onPress, isRTL, iconColor }) => {
   const { theme: appTheme } = useAppTheme();
+  const bellIconColor = iconColor || appTheme.colors.card;
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const badgeScaleAnim = useRef(new Animated.Value(1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -429,9 +430,33 @@ export const NotificationBell = ({ count, onPress, isRTL }) => {
     onPress();
   };
 
+  const bellStyles = {
+    button: {
+      padding: 8,
+      position: 'relative',
+    },
+    badge: {
+      position: 'absolute',
+      top: 4,
+      minWidth: 18,
+      height: 18,
+      borderRadius: 9,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 4,
+      borderWidth: 2,
+      borderColor: iconColor || appTheme.colors.card,
+    },
+    badgeText: {
+      color: '#fff',
+      fontSize: 10,
+      fontWeight: '800',
+    },
+  };
+
   return (
     <TouchableOpacity
-      style={styles.bellButton}
+      style={bellStyles.button}
       onPress={handlePress}
       activeOpacity={0.8}
     >
@@ -440,13 +465,13 @@ export const NotificationBell = ({ count, onPress, isRTL }) => {
           <Ionicons 
             name={count > 0 ? "notifications" : "notifications-outline"} 
             size={26} 
-            color={appTheme.colors.card} 
+            color={bellIconColor} 
           />
         </Animated.View>
         {count > 0 && (
           <Animated.View 
             style={[
-              styles.bellBadge,
+              bellStyles.badge,
               { 
                 backgroundColor: '#ff4757',
                 transform: [{ scale: badgeScaleAnim }],
@@ -454,7 +479,7 @@ export const NotificationBell = ({ count, onPress, isRTL }) => {
               },
             ]}
           >
-            <Text style={styles.bellBadgeText}>
+            <Text style={bellStyles.badgeText}>
               {count > 99 ? '99+' : count}
             </Text>
           </Animated.View>

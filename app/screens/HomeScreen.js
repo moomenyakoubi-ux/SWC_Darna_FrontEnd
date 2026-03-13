@@ -20,9 +20,11 @@ import OfficialPostCard from '../components/OfficialPostCard';
 import SponsoredCard from '../components/SponsoredCard';
 import EventNewsCard from '../components/EventNewsCard';
 import NotificationsSummary from '../components/NotificationsSummary';
+import NotificationsPanel, { NotificationBell } from '../components/NotificationsPanel';
 import theme from '../styles/theme';
 import { GradientButton } from '../components/GradientButton';
 import { useLanguage } from '../context/LanguageContext';
+import { useNotifications } from '../context/NotificationsContext';
 import { WEB_TAB_BAR_WIDTH } from '../components/WebTabBar';
 import HomeIcon from '../components/HomeIcon';
 import { supabase } from '../lib/supabase';
@@ -87,6 +89,7 @@ const resolveEventNewsDetailNavigation = (navigation) => {
 const HomeScreen = ({ navigation }) => {
   const isWeb = Platform.OS === 'web';
   const { strings, isRTL } = useLanguage();
+  const { unreadCount } = useNotifications();
   const homeStrings = strings.home;
   const menuStrings = strings.menu;
   const retryLabel = strings.travel?.retryLabel || 'Riprova';
@@ -98,6 +101,7 @@ const HomeScreen = ({ navigation }) => {
   const [loadingMoreFeed, setLoadingMoreFeed] = useState(false);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const sideMenuWidth = isWeb ? 0 : 280;
   const slideAnim = useRef(new Animated.Value(isWeb ? 1 : 0)).current;
   const requestInFlightRef = useRef(false);
@@ -354,7 +358,7 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-        {/* Header rimosso per web e mobile - solo menu hamburger per mobile */}
+        {/* Header mobile con menu e notifiche */}
         {!isWeb && (
           <View style={[styles.mobileHeader, isRTL && styles.mobileHeaderRtl]}>
             <TouchableOpacity
@@ -364,6 +368,12 @@ const HomeScreen = ({ navigation }) => {
             >
               <Ionicons name="menu" size={26} color={theme.colors.text} />
             </TouchableOpacity>
+            <NotificationBell 
+              count={unreadCount}
+              onPress={() => setIsNotificationsOpen(true)} 
+              isRTL={isRTL}
+              iconColor={theme.colors.text}
+            />
           </View>
         )}
 
@@ -462,6 +472,13 @@ const HomeScreen = ({ navigation }) => {
             </View>
           </Animated.View>
         ) : null}
+        
+        {/* Pannello Notifiche */}
+        <NotificationsPanel
+          isVisible={isNotificationsOpen}
+          onClose={() => setIsNotificationsOpen(false)}
+          isRTL={isRTL}
+        />
     </View>
   );
 };
@@ -472,13 +489,13 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   
-  // Mobile Header - solo bottone menu
+  // Mobile Header - menu e notifiche
   mobileHeader: {
     paddingHorizontal: theme.spacing.lg,
     paddingTop: Platform.OS === 'ios' ? 50 : theme.spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     marginBottom: theme.spacing.md,
   },
   mobileHeaderRtl: {

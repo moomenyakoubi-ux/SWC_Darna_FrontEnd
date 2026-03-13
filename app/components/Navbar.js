@@ -7,8 +7,9 @@ import { WEB_TAB_BAR_WIDTH } from './WebTabBar';
 import NotificationsPanel from './NotificationsPanel';
 
 // Campanella Notifiche con badge animato
-const NotificationBell = ({ count, onPress, isRTL }) => {
+const NotificationBell = ({ count, onPress, isRTL, iconColor }) => {
   const { theme: appTheme } = useAppTheme();
+  const bellIconColor = iconColor || appTheme.colors.card;
   
   return (
     <TouchableOpacity
@@ -20,7 +21,7 @@ const NotificationBell = ({ count, onPress, isRTL }) => {
         <Ionicons 
           name={count > 0 ? "notifications" : "notifications-outline"} 
           size={24} 
-          color={appTheme.colors.card} 
+          color={bellIconColor} 
         />
         {count > 0 && (
           <View style={[
@@ -171,7 +172,7 @@ const createStyles = (appTheme) =>
       justifyContent: 'center',
       paddingHorizontal: 4,
       borderWidth: 2,
-      borderColor: appTheme.colors.secondary,
+      borderColor: bellIconColor,
     },
     bellBadgeLTR: {
       right: -6,
